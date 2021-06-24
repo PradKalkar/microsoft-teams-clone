@@ -39,6 +39,7 @@ io.on('connection', socket => {
     });
 
     socket.on('disconnect', () => {
+        console.log("disconnect called");
         const roomID = socketToRoom[socket.id];
         let room = rooms[roomID];
         if (room) {
@@ -50,7 +51,6 @@ io.on('connection', socket => {
         // emit event to all other users (? within the same room)
         socket.broadcast.emit("user left", socket.id);
     });
-
 });
 
 // All other GET requests not handled before will return our React app

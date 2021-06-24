@@ -45,8 +45,6 @@ const Room = (props) => {
   const videoTrack = useRef();
 	const screenTrack = useRef();
   const peersRef = useRef([]); // array of peer objects
-  const senders = useRef({});
-
   const roomID = props.match.params.roomID;
 
   useEffect(() => {
@@ -66,19 +64,14 @@ const Room = (props) => {
         // we get all the users present in the room
         socketRef.current.on("all other users", (partners) => {
           // create a peer for us corresponding to connection to every other user in the room
-          const peers = [];
           partners.forEach((partnerId) => {
             const peer = createPeer(partnerId, myStream);
             peersRef.current.push({
               peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
               peer,
             });
-            peers.push({
-              peerID: partnerId,
-              peer,
-            });
           });
-          setPeers(peers); // update the state to render their streams
+          setPeers([...peersRef.current]); // update the state to render their streams
         });
 
         // this event is received by a user who is already present within the room
@@ -91,13 +84,8 @@ const Room = (props) => {
             peer, // this is equivalent to peer: peer
           });
 
-          const peerObj = {
-            peerID: payload.callerID,
-            peer,
-          };
-
           // add new peerobj to peers state
-          setPeers((oldPeers) => [...oldPeers, peerObj]);
+          setPeers([...peersRef.current]);
         });
 
         // now the peer who has joined just now is receiving the retrned signal
@@ -133,8 +121,7 @@ const Room = (props) => {
       trickle: false,
     });
 
-    senders.current[partnerId] = [];
-    myStream.getTracks().forEach(track => senders.current[partnerId].push(peer.addTrack(track, myStream)));
+    myStream.getTracks().forEach(track => peer.addTrack(track, myStream));
 
 
     // since here initiator is true, whenever peer is created it signals
@@ -157,8 +144,7 @@ const Room = (props) => {
       trickle: false
     });
 
-    senders.current[callerID] = [];
-    myStream.getTracks().forEach(track => senders.current[callerID].push(peer.addTrack(track, myStream)));
+    myStream.getTracks().forEach(track => peer.addTrack(track, myStream));
 
     // here initiator is false,
     // so the below event is fired only when our peer accepts the incomingSignal
@@ -172,7 +158,7 @@ const Room = (props) => {
     return peer;
   }
 
-  function shareScreen() {
+  const shareScreen = () => {
     navigator.mediaDevices.getDisplayMedia({ cursor: true }).then(stream => {
       screenTrack.current = stream.getTracks()[0]; 
 
@@ -187,8 +173,15 @@ const Room = (props) => {
       }
     });
   }
+
+  const leaveRoom = () => {
+    socketRef.current.disconnect();
+    props.history.push("/");
+  }
+
   return (
     <>
+      <button onClick={leaveRoom}>Leave Call</button>
       <button onClick={shareScreen}>Share Screen</button>
       <Container>
         <StyledVideo controls muted ref={userVideo} autoPlay playsInline />
