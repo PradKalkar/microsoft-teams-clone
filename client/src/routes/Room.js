@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
-import { Button } from '@material-ui/core';
+import { Button } from "@material-ui/core";
 
 const Container = styled.div`
   padding: 20px;
@@ -24,7 +24,7 @@ const StyledVideo = styled.video`
 
 const Div = styled.div`
   margin: 5px;
-` 
+`;
 
 const Video = (props) => {
   const [muted, setMuted] = useState(false);
@@ -39,36 +39,49 @@ const Video = (props) => {
   }, []);
 
   const muteAudio = () => {
-    if (videoRef.current.muted){
+    if (videoRef.current.muted) {
       videoRef.current.muted = false;
       setMuted(false);
-    }
-    else{
+    } else {
       videoRef.current.muted = true;
       setMuted(true);
     }
-  }
-  
+  };
+
   const fullScreen = () => {
-    if (videoRef.current.requestFullscreen){
+    if (videoRef.current.requestFullscreen) {
       videoRef.current.requestFullscreen();
     } else if (videoRef.current.mozRequestFullScreen) {
       videoRef.current.mozRequestFullScreen(); // Firefox
     } else if (videoRef.current.webkitRequestFullscreen) {
       videoRef.current.webkitRequestFullscreen(); // Chrome and Safari
     }
-  }
+  };
 
   return (
     <Div>
       <StyledVideo playsInline autoPlay ref={videoRef} />
       <Div>
-        <Button style={{ position: 'relative', left: '100px' }} variant="contained" color="primary" onClick={muteAudio} ref={buttonRef}>{muted ? "Unmute": "Mute"}</Button>
-        <Button style={{ position: 'relative', left: '150px' }} variant="contained" color="primary" onClick={fullScreen}>Full Screen</Button>
+        <Button
+          style={{ position: "relative", left: "100px" }}
+          variant="contained"
+          color="primary"
+          onClick={muteAudio}
+          ref={buttonRef}
+        >
+          {muted ? "Unmute" : "Mute"}
+        </Button>
+        <Button
+          style={{ position: "relative", left: "150px" }}
+          variant="contained"
+          color="primary"
+          onClick={fullScreen}
+        >
+          Full Screen
+        </Button>
       </Div>
     </Div>
-    
-  )
+  );
 };
 
 const videoConstraints = {
@@ -83,7 +96,7 @@ const Room = (props) => {
   const userStream = useRef();
   const audioTrack = useRef();
   const videoTrack = useRef();
-	const screenTrack = useRef();
+  const screenTrack = useRef();
   const peersRef = useRef([]); // array of peer objects
   const roomID = props.match.params.roomID;
 
@@ -94,7 +107,7 @@ const Room = (props) => {
       .getUserMedia({ video: videoConstraints, audio: true })
       .then((myStream) => {
         userStream.current = myStream;
-        videoTrack.current =  userStream.current.getTracks()[1];
+        videoTrack.current = userStream.current.getTracks()[1];
         audioTrack.current = userStream.current.getTracks()[0];
 
         userVideo.current.srcObject = myStream;
@@ -159,10 +172,15 @@ const Room = (props) => {
     const peer = new Peer({
       initiator: true,
       trickle: false,
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+        ],
+      },
     });
 
-    myStream.getTracks().forEach(track => peer.addTrack(track, myStream));
-
+    myStream.getTracks().forEach((track) => peer.addTrack(track, myStream));
 
     // since here initiator is true, whenever peer is created it signals
     // and the below function gets called
@@ -181,10 +199,16 @@ const Room = (props) => {
     // since I am receiving the offer, initiator = false
     const peer = new Peer({
       initiator: false,
-      trickle: false
+      trickle: false,
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+          { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+        ],
+      },
     });
 
-    myStream.getTracks().forEach(track => peer.addTrack(track, myStream));
+    myStream.getTracks().forEach((track) => peer.addTrack(track, myStream));
 
     // here initiator is false,
     // so the below event is fired only when our peer accepts the incomingSignal
@@ -199,48 +223,64 @@ const Room = (props) => {
   }
 
   const shareScreen = () => {
-    navigator.mediaDevices.getDisplayMedia({ cursor: true }).then(stream => {
-      screenTrack.current = stream.getTracks()[0]; 
+    navigator.mediaDevices.getDisplayMedia({ cursor: true }).then((stream) => {
+      screenTrack.current = stream.getTracks()[0];
 
-      peersRef.current.forEach(peerObj => {
-        peerObj.peer.replaceTrack(videoTrack.current, screenTrack.current, userStream.current);
-      })
-        
+      peersRef.current.forEach((peerObj) => {
+        peerObj.peer.replaceTrack(
+          videoTrack.current,
+          screenTrack.current,
+          userStream.current
+        );
+      });
+
       screenTrack.current.onended = () => {
-				peersRef.current.forEach(peerObj => {
-					peerObj.peer.replaceTrack(screenTrack.current, videoTrack.current, userStream.current);
-				})
-      }
+        peersRef.current.forEach((peerObj) => {
+          peerObj.peer.replaceTrack(
+            screenTrack.current,
+            videoTrack.current,
+            userStream.current
+          );
+        });
+      };
     });
-  }
+  };
 
   const leaveRoom = () => {
     socketRef.current.disconnect();
     props.history.push("/");
-  }
+  };
 
   const muteVideo = () => {
-    if (userVideo.current.srcObject){
+    if (userVideo.current.srcObject) {
       // userVideo.current.srcObject.getTracks()[0].disable();
       const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
       userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
     }
-  }
+  };
 
   const muteAudio = () => {
-    if (userVideo.current.srcObject){
+    if (userVideo.current.srcObject) {
       // userVideo.current.srcObject.getTracks()[0].disable();
       const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
       userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
     }
-  }
+  };
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={muteVideo}>Mute Video</Button>
-      <Button variant="contained" color="primary" onClick={muteAudio}>Mute Audio</Button>
-      <Button variant="contained" color="primary" onClick={leaveRoom}>Leave Call</Button>
-      <Button variant="contained" color="primary" onClick={shareScreen}>Share Screen</Button>
+      <Button variant="contained" color="primary" onClick={muteVideo}>
+        Mute Video
+      </Button>
+      <Button variant="contained" color="primary" onClick={muteAudio}>
+        Mute Audio
+      </Button>
+      <Button variant="contained" color="primary" onClick={leaveRoom}>
+        Leave Call
+      </Button>
+      <Button variant="contained" color="primary" onClick={shareScreen}>
+        Share Screen
+      </Button>
       <Container>
         <Div>
           <StyledVideo muted ref={userVideo} autoPlay playsInline />
@@ -250,7 +290,13 @@ const Room = (props) => {
           </Div>
         </Div>
         {peers.map((peerObj) => {
-          return <Video key={peerObj.peerID} peer={peerObj.peer} user={peerObj.peerID}/>;
+          return (
+            <Video
+              key={peerObj.peerID}
+              peer={peerObj.peer}
+              user={peerObj.peerID}
+            />
+          );
         })}
       </Container>
     </>
