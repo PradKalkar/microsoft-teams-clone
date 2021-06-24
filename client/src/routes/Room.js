@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
+import { Button } from '@material-ui/core';
 
 const Container = styled.div`
   padding: 20px;
@@ -14,21 +15,60 @@ const Container = styled.div`
 `;
 
 const StyledVideo = styled.video`
-  height: 40%;
-  width: 50%;
+  height: 70%;
+  width: 80%;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg); /* Safari and Chrome */
+  -moz-transform: rotateY(180deg); /* Firefox */
 `;
 
+const Div = styled.div`
+  margin: 5px;
+` 
+
 const Video = (props) => {
-  const ref = useRef();
+  const [muted, setMuted] = useState(false);
+  const videoRef = useRef();
+  const buttonRef = useRef();
 
   useEffect(() => {
     //   props.peer.on("trac")
     props.peer.on("stream", (stream) => {
-      ref.current.srcObject = stream;
+      videoRef.current.srcObject = stream;
     });
   }, []);
 
-  return <StyledVideo controls playsInline autoPlay ref={ref} />;
+  const muteAudio = () => {
+    if (videoRef.current.muted){
+      videoRef.current.muted = false;
+      setMuted(false);
+    }
+    else{
+      videoRef.current.muted = true;
+      setMuted(true);
+    }
+  }
+  
+  const fullScreen = () => {
+    if (videoRef.current.requestFullscreen){
+      videoRef.current.requestFullscreen();
+    } else if (videoRef.current.mozRequestFullScreen) {
+      videoRef.current.mozRequestFullScreen(); // Firefox
+    } else if (videoRef.current.webkitRequestFullscreen) {
+      videoRef.current.webkitRequestFullscreen(); // Chrome and Safari
+    }
+  }
+
+  return (
+    <Div>
+      <StyledVideo playsInline autoPlay ref={videoRef} />
+      <Div>
+        <Button style={{ position: 'relative', left: '100px' }} variant="contained" color="primary" onClick={muteAudio} ref={buttonRef}>{muted ? "Unmute": "Mute"}</Button>
+        <Button style={{ position: 'relative', left: '150px' }} variant="contained" color="primary" onClick={fullScreen}>Full Screen</Button>
+      </Div>
+    </Div>
+    
+  )
 };
 
 const videoConstraints = {
@@ -179,14 +219,38 @@ const Room = (props) => {
     props.history.push("/");
   }
 
+  const muteVideo = () => {
+    if (userVideo.current.srcObject){
+      // userVideo.current.srcObject.getTracks()[0].disable();
+      const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
+      userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
+    }
+  }
+
+  const muteAudio = () => {
+    if (userVideo.current.srcObject){
+      // userVideo.current.srcObject.getTracks()[0].disable();
+      const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
+      userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
+    }
+  }
+
   return (
     <>
-      <button onClick={leaveRoom}>Leave Call</button>
-      <button onClick={shareScreen}>Share Screen</button>
+      <Button variant="contained" color="primary" onClick={muteVideo}>Mute Video</Button>
+      <Button variant="contained" color="primary" onClick={muteAudio}>Mute Audio</Button>
+      <Button variant="contained" color="primary" onClick={leaveRoom}>Leave Call</Button>
+      <Button variant="contained" color="primary" onClick={shareScreen}>Share Screen</Button>
       <Container>
-        <StyledVideo controls muted ref={userVideo} autoPlay playsInline />
+        <Div>
+          <StyledVideo muted ref={userVideo} autoPlay playsInline />
+          <Div>
+            <Button></Button>
+            <Button></Button>
+          </Div>
+        </Div>
         {peers.map((peerObj) => {
-          return <Video key={peerObj.peerID} peer={peerObj.peer} />;
+          return <Video key={peerObj.peerID} peer={peerObj.peer} user={peerObj.peerID}/>;
         })}
       </Container>
     </>
