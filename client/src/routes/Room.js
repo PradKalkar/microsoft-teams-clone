@@ -28,7 +28,9 @@ const Video = (props) => {
     });
   }, []);
 
-  return <StyledVideo controls playsInline autoPlay ref={ref} />;
+  return (
+    <StyledVideo controls playsInline autoPlay ref={ref} />
+  )
 };
 
 const videoConstraints = {
@@ -179,14 +181,32 @@ const Room = (props) => {
     props.history.push("/");
   }
 
+  const muteVideo = () => {
+    if (userVideo.current.srcObject){
+      // userVideo.current.srcObject.getTracks()[0].disable();
+      const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
+      userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
+    }
+  }
+
+  const muteAudio = () => {
+    if (userVideo.current.srcObject){
+      // userVideo.current.srcObject.getTracks()[0].disable();
+      const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
+      userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
+    }
+  }
+
   return (
     <>
+      <button onClick={muteVideo}>Mute Video</button>
+      <button onClick={muteAudio}>Mute Audio</button>
       <button onClick={leaveRoom}>Leave Call</button>
       <button onClick={shareScreen}>Share Screen</button>
       <Container>
-        <StyledVideo controls muted ref={userVideo} autoPlay playsInline />
+        <StyledVideo style={{borderColor: 'yellow'}} controls muted ref={userVideo} autoPlay playsInline />
         {peers.map((peerObj) => {
-          return <Video key={peerObj.peerID} peer={peerObj.peer} />;
+          return <Video key={peerObj.peerID} peer={peerObj.peer} user={peerObj.peerID}/>;
         })}
       </Container>
     </>
