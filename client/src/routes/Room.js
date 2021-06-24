@@ -174,8 +174,14 @@ const Room = (props) => {
       trickle: false,
       config: {
         iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+          {
+            urls: "stun:stun.stunprotocol.org",
+          },
+          {
+            urls: "turn:numb.viagenie.ca",
+            credential: "muazkh",
+            username: "webrtc@live.com",
+          },
         ],
       },
     });
@@ -202,8 +208,14 @@ const Room = (props) => {
       trickle: false,
       config: {
         iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:global.stun.twilio.com:3478?transport=udp" },
+          {
+            urls: "stun:stun.stunprotocol.org",
+          },
+          {
+            urls: "turn:numb.viagenie.ca",
+            credential: "muazkh",
+            username: "webrtc@live.com",
+          },
         ],
       },
     });
