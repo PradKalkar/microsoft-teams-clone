@@ -3,7 +3,9 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
-import { Button } from "@material-ui/core";
+import { IconButton } from "@material-ui/core";
+import FullscreenRoundedIcon from "@material-ui/icons/FullscreenRounded";
+import MyToolTip from "./MyToolTip";
 
 const Container = styled.div`
   padding: 20px;
@@ -26,7 +28,6 @@ const Div = styled.div`
 const Video = (props) => {
   const [muted, setMuted] = useState(false);
   const videoRef = useRef();
-  const buttonRef = useRef();
 
   useEffect(() => {
     //   props.peer.on("trac")
@@ -59,23 +60,34 @@ const Video = (props) => {
     <Div>
       <StyledVideo playsInline autoPlay ref={videoRef} />
       <Div>
-        <Button
-          style={{ position: "relative", left: "100px" }}
-          variant="contained"
-          color="primary"
-          onClick={muteAudio}
-          ref={buttonRef}
+        <MyToolTip
+          title={
+            muted ? "Unmute participant for you" : "Mute participant for you"
+          }
         >
-          {muted ? "Unmute" : "Mute"}
-        </Button>
-        <Button
-          style={{ position: "relative", left: "150px" }}
-          variant="contained"
-          color="primary"
-          onClick={fullScreen}
-        >
-          Full Screen
-        </Button>
+          <IconButton
+            onClick={muteAudio}
+            style={{ backgroundColor: muted ? "#eb3f21" : "#404239" }}
+          >
+            {muted ? (
+              <span className="material-icons" style={{ color: "white" }}>
+                volume_off
+              </span>
+            ) : (
+              <span className="material-icons" style={{ color: "white" }}>
+                volume_up
+              </span>
+            )}
+          </IconButton>
+        </MyToolTip>
+        <MyToolTip title="See participant's stream in Fullscreen mode">
+          <IconButton
+            onClick={fullScreen}
+            style={{ backgroundColor: "#404239" }}
+          >
+            <FullscreenRoundedIcon style={{ color: "white" }} />
+          </IconButton>
+        </MyToolTip>
       </Div>
     </Div>
   );
@@ -88,6 +100,9 @@ const videoConstraints = {
 
 const Room = (props) => {
   const [peers, setPeers] = useState([]);
+  const [videoMuted, setVideoMuted] = useState(false);
+  const [audioMuted, setAudioMuted] = useState(false);
+  const [screenShared, setScreenShared] = useState(false);
   const socketRef = useRef();
   const userVideo = useRef();
   const userStream = useRef();
@@ -233,6 +248,7 @@ const Room = (props) => {
 
   const shareScreen = () => {
     navigator.mediaDevices.getDisplayMedia({ cursor: true }).then((stream) => {
+      setScreenShared(true);
       screenTrack.current = stream.getTracks()[0];
 
       peersRef.current.forEach((peerObj) => {
@@ -244,6 +260,8 @@ const Room = (props) => {
       });
 
       screenTrack.current.onended = () => {
+        console.log("On ended called");
+        setScreenShared(false);
         peersRef.current.forEach((peerObj) => {
           peerObj.peer.replaceTrack(
             screenTrack.current,
@@ -255,8 +273,20 @@ const Room = (props) => {
     });
   };
 
+  const stopShareScreen = () => {
+    screenTrack.current.stop();
+    setScreenShared(false);
+    peersRef.current.forEach((peerObj) => {
+      peerObj.peer.replaceTrack(
+        screenTrack.current,
+        videoTrack.current,
+        userStream.current
+      );
+    });
+  };
+
   const leaveRoom = () => {
-    userStream.current.getTracks().forEach(track => track.stop());
+    userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
     props.history.push("/");
   };
@@ -267,6 +297,7 @@ const Room = (props) => {
       const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
       userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
     }
+    setVideoMuted(!videoMuted);
   };
 
   const muteAudio = () => {
@@ -275,28 +306,91 @@ const Room = (props) => {
       const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
       userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
     }
+    setAudioMuted(!audioMuted);
   };
 
   return (
     <>
-      <Button variant="contained" color="primary" onClick={muteVideo}>
-        Mute Video
-      </Button>
-      <Button variant="contained" color="primary" onClick={muteAudio}>
-        Mute Audio
-      </Button>
-      <Button variant="contained" color="primary" onClick={leaveRoom}>
-        Leave Call
-      </Button>
-      <Button variant="contained" color="primary" onClick={shareScreen}>
-        Share Screen
-      </Button>
       <Container>
         <Div>
           <StyledVideo muted ref={userVideo} autoPlay playsInline />
           <Div>
-            <Button></Button>
-            <Button></Button>
+            <MyToolTip
+              title={videoMuted ? "Turn on Camera" : "Turn off Camera"}
+            >
+              <IconButton
+                onClick={muteVideo}
+                style={{ backgroundColor: videoMuted ? "#eb3f21" : "#404239" }}
+              >
+                {videoMuted ? (
+                  <span
+                    className="material-icons-outlined"
+                    style={{ color: "white" }}
+                  >
+                    videocam_off
+                  </span>
+                ) : (
+                  <span
+                    className="material-icons-outlined"
+                    style={{ color: "white" }}
+                  >
+                    videocam
+                  </span>
+                )}
+              </IconButton>
+            </MyToolTip>
+
+            <MyToolTip
+              title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
+            >
+              <IconButton
+                onClick={muteAudio}
+                style={{ backgroundColor: audioMuted ? "#eb3f21" : "#404239" }}
+              >
+                {audioMuted ? (
+                  <span className="material-icons" style={{ color: "white" }}>
+                    mic_off
+                  </span>
+                ) : (
+                  <span className="material-icons" style={{ color: "white" }}>
+                    mic
+                  </span>
+                )}
+              </IconButton>
+            </MyToolTip>
+
+            <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
+              <IconButton
+                onClick={() => {
+                  if (screenShared) stopShareScreen();
+                  else shareScreen();
+                }}
+                style={{
+                  backgroundColor: screenShared ? "#8eb2f5" : "#404239",
+                }}
+              >
+                {screenShared ? (
+                  <span className="material-icons" style={{ color: "black" }}>
+                    cancel_presentation
+                  </span>
+                ) : (
+                  <span className="material-icons" style={{ color: "white" }}>
+                    present_to_all
+                  </span>
+                )}
+              </IconButton>
+            </MyToolTip>
+
+            <MyToolTip title="Leave Call">
+              <IconButton
+                onClick={leaveRoom}
+                style={{ backgroundColor: "#eb3f21" }}
+              >
+                <span className="material-icons" style={{ color: "white" }}>
+                  call_end
+                </span>
+              </IconButton>
+            </MyToolTip>
           </Div>
         </Div>
         {peers.map((peerObj) => {
