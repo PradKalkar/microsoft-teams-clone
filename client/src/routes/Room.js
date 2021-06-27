@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { IconButton } from "@material-ui/core";
 import FullscreenRoundedIcon from "@material-ui/icons/FullscreenRounded";
 import MyToolTip from "./MyToolTip";
+import useWindowDimensions from "../hooks/useWindowDimensions";
 
 const Container = styled.div`
   padding: 20px;
@@ -19,10 +20,6 @@ const Container = styled.div`
 const StyledVideo = styled.video`
   height: 70%;
   width: 80%;
-`;
-
-const Div = styled.div`
-  margin: 5px;
 `;
 
 const Video = (props) => {
@@ -57,9 +54,9 @@ const Video = (props) => {
   };
 
   return (
-    <Div>
+    <div>
       <StyledVideo playsInline autoPlay ref={videoRef} />
-      <Div>
+      <div>
         <MyToolTip
           title={
             muted ? "Unmute participant for you" : "Mute participant for you"
@@ -88,8 +85,8 @@ const Video = (props) => {
             <FullscreenRoundedIcon style={{ color: "white" }} />
           </IconButton>
         </MyToolTip>
-      </Div>
-    </Div>
+      </div>
+    </div>
   );
 };
 
@@ -99,6 +96,8 @@ const videoConstraints = {
 };
 
 const Room = (props) => {
+  // dynamic height and width of webpage
+  const { width } = useWindowDimensions();
   const [peers, setPeers] = useState([]);
   const [videoMuted, setVideoMuted] = useState(false);
   const [audioMuted, setAudioMuted] = useState(false);
@@ -310,89 +309,11 @@ const Room = (props) => {
   };
 
   return (
-    <>
+    <div style={{backgroundColor: 'rgb(39, 39, 44)'}}>
       <Container>
-        <Div>
+        <div>
           <StyledVideo muted ref={userVideo} autoPlay playsInline />
-          <Div>
-            <MyToolTip
-              title={videoMuted ? "Turn on Camera" : "Turn off Camera"}
-            >
-              <IconButton
-                onClick={muteVideo}
-                style={{ backgroundColor: videoMuted ? "#eb3f21" : "#404239" }}
-              >
-                {videoMuted ? (
-                  <span
-                    className="material-icons-outlined"
-                    style={{ color: "white" }}
-                  >
-                    videocam_off
-                  </span>
-                ) : (
-                  <span
-                    className="material-icons-outlined"
-                    style={{ color: "white" }}
-                  >
-                    videocam
-                  </span>
-                )}
-              </IconButton>
-            </MyToolTip>
-
-            <MyToolTip
-              title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
-            >
-              <IconButton
-                onClick={muteAudio}
-                style={{ backgroundColor: audioMuted ? "#eb3f21" : "#404239" }}
-              >
-                {audioMuted ? (
-                  <span className="material-icons" style={{ color: "white" }}>
-                    mic_off
-                  </span>
-                ) : (
-                  <span className="material-icons" style={{ color: "white" }}>
-                    mic
-                  </span>
-                )}
-              </IconButton>
-            </MyToolTip>
-
-            <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
-              <IconButton
-                onClick={() => {
-                  if (screenShared) stopShareScreen();
-                  else shareScreen();
-                }}
-                style={{
-                  backgroundColor: screenShared ? "#8eb2f5" : "#404239",
-                }}
-              >
-                {screenShared ? (
-                  <span className="material-icons" style={{ color: "black" }}>
-                    cancel_presentation
-                  </span>
-                ) : (
-                  <span className="material-icons" style={{ color: "white" }}>
-                    present_to_all
-                  </span>
-                )}
-              </IconButton>
-            </MyToolTip>
-
-            <MyToolTip title="Leave Call">
-              <IconButton
-                onClick={leaveRoom}
-                style={{ backgroundColor: "#eb3f21" }}
-              >
-                <span className="material-icons" style={{ color: "white" }}>
-                  call_end
-                </span>
-              </IconButton>
-            </MyToolTip>
-          </Div>
-        </Div>
+        </div>
         {peers.map((peerObj) => {
           return (
             <Video
@@ -403,7 +324,92 @@ const Room = (props) => {
           );
         })}
       </Container>
-    </>
+      <nav>
+        <h3 style={{position: 'absolute', left: width / 100 * 2}}>
+          { new Date().toLocaleString('en-US', { hour12: true, hour: "numeric", minute: "numeric", weekday: 'long'})}
+        </h3>
+        <div style={{position: 'absolute', left: width / 100 * 41}}>
+        <MyToolTip title={videoMuted ? "Turn on Camera" : "Turn off Camera"}>
+          <IconButton
+            onClick={muteVideo}
+            style={{ backgroundColor: videoMuted ? "#eb3f21" : "#404239", margin: width/1000 * 5 }}
+          >
+            {videoMuted ? (
+              <span
+                className="material-icons-outlined"
+                style={{ color: "white" }}
+              >
+                videocam_off
+              </span>
+            ) : (
+              <span
+                className="material-icons-outlined"
+                style={{ color: "white" }}
+              >
+                videocam
+              </span>
+            )}
+          </IconButton>
+        </MyToolTip>
+
+        <MyToolTip
+          title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
+        >
+          <IconButton
+            onClick={muteAudio}
+            style={{ backgroundColor: audioMuted ? "#eb3f21" : "#404239", margin: width/1000 * 5 }}
+          >
+            {audioMuted ? (
+              <span className="material-icons" style={{ color: "white" }}>
+                mic_off
+              </span>
+            ) : (
+              <span className="material-icons" style={{ color: "white" }}>
+                mic
+              </span>
+            )}
+          </IconButton>
+        </MyToolTip>
+
+        <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
+          <IconButton
+            onClick={() => {
+              if (screenShared) stopShareScreen();
+              else shareScreen();
+            }}
+            style={{
+              backgroundColor: screenShared ? "#8eb2f5" : "#404239",
+              margin: width/1000 * 5
+            }}
+          >
+            {screenShared ? (
+              <span className="material-icons" style={{ color: "black" }}>
+                cancel_presentation
+              </span>
+            ) : (
+              <span className="material-icons" style={{ color: "white" }}>
+                present_to_all
+              </span>
+            )}
+          </IconButton>
+        </MyToolTip>
+
+        <MyToolTip title="Leave Call">
+          <IconButton
+            onClick={leaveRoom}
+            style={{ backgroundColor: "#eb3f21", margin: width/1000 * 5 }}
+          >
+            <span className="material-icons" style={{ color: "white" }}>
+              call_end
+            </span>
+          </IconButton>
+        </MyToolTip>
+        </div>
+        <h5 style={{position: 'absolute', right: width / 100 * 3}}>
+          {props.match.params.roomID}
+        </h5>
+      </nav>
+    </div>
   );
 };
 
