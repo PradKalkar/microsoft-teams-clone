@@ -111,7 +111,14 @@ const Room = (props) => {
   const peersRef = useRef([]); // array of peer objects
   const roomID = props.match.params.roomID;
 
+  // when a user presses the back button, disconnect the socket
+  window.onpopstate = () => {
+    userStream.current.getTracks().forEach((track) => track.stop());
+    socketRef.current.disconnect();
+  }
+
   useEffect(() => {
+
     socketRef.current = io.connect("/"); // connecting with the socket.io server
 
     navigator.mediaDevices
