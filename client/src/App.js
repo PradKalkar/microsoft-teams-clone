@@ -8,11 +8,18 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <Route path="/" exact component={CreateRoom} />
-        <Route path="/room/:roomID" component={Room} />
+        <Route path="/" exact component={HomePage} />
+        <Route path="/videochat" exact component={CreateRoom} />
+        <Route path="/videochat/room/:roomID" component={Room} />
       </Switch>
     </BrowserRouter>
   );
+}
+
+function HomePage() {
+  return (
+    <h1>Home Page</h1>
+  )
 }
 
 export default App;

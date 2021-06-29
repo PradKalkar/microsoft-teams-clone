@@ -287,7 +287,7 @@ const Room = (props) => {
   const leaveRoom = () => {
     userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
-    props.history.push("/");
+    props.history.push("/videochat");
   };
 
   const muteVideo = () => {
