@@ -15,7 +15,7 @@ const VideoChatHome = (props) => {
 
   const startNewMeeting = () => {
     const roomId = uuid();
-    props.history.push(`/videochat/room/${roomId}#init`);
+    props.history.push(`/videochat/room/${roomId}#init`); // #init signifies admin
   };
 
   const handleExistingMeetJoin = () => {
@@ -26,23 +26,36 @@ const VideoChatHome = (props) => {
       if (link[i] === '/') break;
     }
     i++;
-    const roomId = link.substr(i);
+    let roomId = link.substr(i);
+    // check last 5 characters of roomId
+    // remove them if they are "#init"
+    const lastFive = link.substr(i - 5);
+    if (lastFive === "#init"){
+      roomId = roomId.slice(i, -5);
+    }
+
     if (i !== 0){
       // verify the meet url
       if (link === `https://pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`){
-        // correct
-        setLink('');
-        props.history.push(`/videochat/room/${roomId}`);  
+        // correct 
       }
-      else if (link === `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`)
-      {
+      else if (link === `https://pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}#init`){
         // correct
-        setLink('');
-        props.history.push(`/videochat/room/${roomId}`);  
+      }
+      else if (link === `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`){
+        // correct
+      }    
+      else if (link === `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}#init`){
+        // correct
       }
       else{
         alert('Invalid Link. Please verify the link or code you entered.')
+        return;
       }
+      
+      // if correct
+      setLink('');
+      props.history.push(`/videochat/room/${roomId}`);  
     } 
     else{
       // correct
