@@ -15,7 +15,7 @@ const VideoChatHome = (props) => {
 
   const startNewMeeting = () => {
     const roomId = uuid();
-    props.history.push(`/videochat/room/${roomId}#init`); // #init signifies admin
+    props.history.push(`/videochat/room/${roomId}`); // #init signifies admin
   };
 
   const handleExistingMeetJoin = () => {
@@ -39,15 +39,9 @@ const VideoChatHome = (props) => {
       if (link === `https://pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`){
         // correct 
       }
-      else if (link === `https://pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}#init`){
-        // correct
-      }
       else if (link === `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`){
         // correct
       }    
-      else if (link === `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}#init`){
-        // correct
-      }
       else{
         alert('Invalid Link. Please verify the link or code you entered.')
         return;
@@ -66,7 +60,7 @@ const VideoChatHome = (props) => {
 
   return (
     <div className="home-page">
-      <img src="/pradnesh-msteams-logo-circle.png" alt="logo" style={{height: width / 100 * 20, width: width / 100 * 20, left: width / 100 * 40, position: 'absolute'}}/>
+      <img src="/pradnesh-msteams-logo-circle.png" alt="logo" style={{height: width / 100 * 20, width: width / 100 * 20, left: width / 100 * 40, position: 'absolute', top: '5vh'}}/>
       <div className="body">
         <div className="left-side">
           <div className="content">

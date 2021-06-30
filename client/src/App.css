@@ -6,8 +6,32 @@ nav{
   display: flex;
   justify-content:space-between;
   align-items: center;
-  min-height: 14vh;
+  min-height: 12vh;
   background-color: rgb(39, 39, 44);
   color: white;
   font-size: medium;
+}
+
+video{
+  margin: 3%;
+  float: left;
+  min-width: 44%;
+  max-width: 44%;
+}
+
+#video-grid{
+  padding-top: 2%;
+  padding-bottom: 5%;
+  padding-left: 5%;
+  padding-right: 2%;
+  display: flex;
+  height: 100%;
+  width: 90%;
+  flex-wrap: wrap;
+  margin-bottom: 5%;
+  justify-content: space-between;
+}
+
+body{
+  background-color: rgb(39, 39, 44);
 }

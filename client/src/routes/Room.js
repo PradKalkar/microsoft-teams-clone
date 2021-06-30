@@ -1,34 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useRef, useState, useReducer } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
-import styled from "styled-components";
 import { IconButton } from "@material-ui/core";
 import MyToolTip from "./MyToolTip";
 import useWindowDimensions from "../hooks/useWindowDimensions";
 import PartnerVideo from './PartnerVideo';
-
-const Container = styled.div`
-  padding: 20px;
-  display: flex;
-  height: 100vh;
-  width: 90%;
-  margin: auto;
-  flex-wrap: wrap;
-`;
-
-const StyledVideo = styled.video`
-  height: 70%;
-  width: 80%;
-`;
-
-const videoConstraints = {
-  height: window.innerHeight / 2,
-  width: window.innerWidth / 2,
-};
+import useSound from 'use-sound';
 
 const Room = (props) => {
   // dynamic height and width of webpage
+  const [playSound] = useSound("/hangupsound.mp3");
   const { width } = useWindowDimensions();
   const [peers, setPeers] = useState([]);
   const [videoMuted, setVideoMuted] = useState(false);
@@ -43,9 +25,6 @@ const Room = (props) => {
   const peersRef = useRef([]); // array of peer objects
   const roomID = props.match.params.roomID;
 
-  const isAdmin = window.location.hash === "#init" ? true : false;
-  const url = `${window.location.origin}${window.location.pathname}`;
-
   // when a user presses the back button, disconnect the socket
   window.onpopstate = () => {
     userStream.current.getTracks().forEach((track) => track.stop());
@@ -56,16 +35,15 @@ const Room = (props) => {
     socketRef.current = io.connect("/"); // connecting with the socket.io server
 
     navigator.mediaDevices
-      .getUserMedia({ video: videoConstraints, audio: true })
+      .getUserMedia({ video: true, audio: true })
       .then((myStream) => {
-        if (isAdmin){
-          alert(`Copy the meeting url (leaving the #init part) and share it with those whom you want to join.`)
-        }
+        // show this alert to every user who joins the chat
         userStream.current = myStream;
         videoTrack.current = userStream.current.getTracks()[1];
         audioTrack.current = userStream.current.getTracks()[0];
-
         userVideo.current.srcObject = myStream;
+
+        alert("Copy the meeting url and share with others whom you want to join.");
         socketRef.current.emit("join room", roomID);
 
         // this is received by the user who just joined
@@ -228,13 +206,19 @@ const Room = (props) => {
     });
   };
 
-  const leaveRoom = () => {
+  const endCall = () => {
+    playSound();
+    leaveRoom();
     userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
     props.history.push("/videochat");
-    
-    // stop the page from accessing camera and microphone
-    window.location.reload();
+  }
+
+  const leaveRoom = async() => {
+    setTimeout(() => {      
+      // stop the page from accessing camera and microphone
+      window.location.reload();
+    }, 1500);
   };
 
   const muteVideo = () => {
@@ -249,18 +233,15 @@ const Room = (props) => {
   const muteAudio = () => {
     if (userVideo.current.srcObject) {
       // userVideo.current.srcObject.getTracks()[0].disable();
-      const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
-      userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
+      userVideo.current.srcObject.getAudioTracks()[0].enabled = audioMuted;
     }
     setAudioMuted(!audioMuted);
   };
 
   return (
-    <div style={{backgroundColor: 'rgb(39, 39, 44)'}}>
-      <Container>
-        <div>
-          <StyledVideo muted ref={userVideo} autoPlay playsInline />
-        </div>
+    <div>
+      <div id="video-grid">
+        <video muted controls ref={userVideo} autoPlay playsInline />
         {peers.map((peerObj) => {
           return (
             <PartnerVideo
@@ -270,7 +251,7 @@ const Room = (props) => {
             />
           );
         })}
-      </Container>
+      </div>
       <nav>
         <h3 style={{position: 'absolute', left: width / 100 * 2}}>
           { new Date().toLocaleString('en-US', { hour12: true, hour: "numeric", minute: "numeric", weekday: 'long'})}
@@ -343,7 +324,7 @@ const Room = (props) => {
 
         <MyToolTip title="Leave Call">
           <IconButton
-            onClick={leaveRoom}
+            onClick={endCall}
             style={{ backgroundColor: "#eb3f21", margin: width/1000 * 5 }}
           >
             <span className="material-icons" style={{ color: "white" }}>
