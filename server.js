@@ -15,11 +15,6 @@ const socketToRoom = {}; // socketToRoom[s] - room in which s resides
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (rooms[roomID]) {
-            const length = rooms[roomID].length;
-            if (length === 4) {
-                socket.emit("room full");
-                return;
-            }
             rooms[roomID].push(socket.id);
         } else {
             rooms[roomID] = [socket.id];
