@@ -7,13 +7,16 @@ nav{
   justify-content:space-between;
   align-items: center;
   min-height: 12vh;
-  background-color: rgb(39, 39, 44);
+  background-color: #202124;
   color: white;
   font-size: medium;
 }
 
-body{
-  background-color: rgb(39, 39, 44);
+/* body{
+ 
+} */
+#room{
+   background-color: #202124
 }
 
 #grid-root{

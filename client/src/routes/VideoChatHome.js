@@ -4,8 +4,10 @@ import "./VideoChatHome.scss";
 import { v1 as uuid } from "uuid";
 import useWindowDimensions from "../hooks/useWindowDimensions";
 import {useState } from 'react';
+import useSound from "use-sound";
 
 const VideoChatHome = (props) => {
+  const [playSound] = useSound("/sounds/joinsound.mp3");
   const {width} = useWindowDimensions();
   const [link, setLink] = useState('');
 
@@ -14,6 +16,7 @@ const VideoChatHome = (props) => {
   }
 
   const startNewMeeting = () => {
+    playSound();
     const roomId = uuid();
     props.history.push(`/videochat/room/${roomId}`); // #init signifies admin
   };
@@ -48,11 +51,13 @@ const VideoChatHome = (props) => {
       }
       
       // if correct
+      playSound();
       setLink('');
       props.history.push(`/videochat/room/${roomId}`);  
     } 
     else{
       // correct
+      playSound();
       setLink('');
       props.history.push(`/videochat/room/${roomId}`);  
     }
@@ -60,7 +65,7 @@ const VideoChatHome = (props) => {
 
   return (
     <div className="home-page">
-      <img src="/pradnesh-msteams-logo-circle.png" alt="logo" style={{height: width / 100 * 20, width: width / 100 * 20, left: width / 100 * 40, position: 'absolute', top: '5vh'}}/>
+      <img src="/images/pradnesh-msteams-logo-circle.png" alt="logo" style={{height: width / 100 * 20, width: width / 100 * 20, left: width / 100 * 40, position: 'absolute', top: '5vh'}}/>
       <div className="body">
         <div className="left-side">
           <div className="content">

@@ -14,7 +14,7 @@ import PartnerVideo from "./PartnerVideo";
 import useSound from "use-sound";
 
 const Room = (props) => {
-  const [playSound] = useSound("/hangupsound.mp3");
+  const [playSound] = useSound("/sounds/hangupsound.mp3");
 
   // dynamic width of webpage
   const { width } = useWindowDimensions();
@@ -271,7 +271,7 @@ const Room = (props) => {
   };
 
   return (
-    <div>
+    <div id="room">
       <div id="grid-root">
         <GridList cellHeight='90vh' id="grid-list" cols={2} spacing={20}>
           <GridListTile key="1" cols={2} rows={1}>
