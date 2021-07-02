@@ -14,7 +14,8 @@ import PartnerVideo from "./PartnerVideo";
 import useSound from "use-sound";
 
 const Room = (props) => {
-  const [playSound] = useSound("/sounds/hangupsound.mp3");
+  const [hangUp] = useSound("/sounds/hangupsound.mp3");
+  const [joinIn] = useSound("/sounds/joinsound.mp3");
 
   // dynamic width of webpage
   const { width } = useWindowDimensions();
@@ -39,8 +40,10 @@ const Room = (props) => {
   };
 
   useEffect(() => {
-    socketRef.current = io.connect("/"); // connecting with the socket.io server
+    // play the join in sound
+    joinIn();
 
+    socketRef.current = io.connect("/"); // connecting with the socket.io server
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((myStream) => {
@@ -236,7 +239,7 @@ const Room = (props) => {
 
   const endCall = () => {
     // play the call ending sound
-    playSound();
+    hangUp();
 
     // stop al tracks - audio and video
     userStream.current.getTracks().forEach((track) => track.stop());

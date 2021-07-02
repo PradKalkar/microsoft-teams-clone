@@ -4,10 +4,8 @@ import "./VideoChatHome.scss";
 import { v1 as uuid } from "uuid";
 import useWindowDimensions from "../hooks/useWindowDimensions";
 import {useState } from 'react';
-import useSound from "use-sound";
 
 const VideoChatHome = (props) => {
-  const [playSound] = useSound("/sounds/joinsound.mp3");
   const {width} = useWindowDimensions();
   const [link, setLink] = useState('');
 
@@ -16,7 +14,6 @@ const VideoChatHome = (props) => {
   }
 
   const startNewMeeting = () => {
-    playSound();
     const roomId = uuid();
     props.history.push(`/videochat/room/${roomId}`); // #init signifies admin
   };
@@ -51,13 +48,11 @@ const VideoChatHome = (props) => {
       }
       
       // if correct
-      playSound();
       setLink('');
       props.history.push(`/videochat/room/${roomId}`);  
     } 
     else{
       // correct
-      playSound();
       setLink('');
       props.history.push(`/videochat/room/${roomId}`);  
     }
