@@ -124,12 +124,7 @@ const Room = (props) => {
             urls: "turn:numb.viagenie.ca",
             credential: "muazkh",
             username: "webrtc@live.com",
-          },
-          {
-            urls: "turn:numb.viagenie.ca?transport=tcp",
-            credential: "muazkh",
-            username: "webrtc@live.com",
-          },
+          }
         ],
       },
     });
