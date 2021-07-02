@@ -11,11 +11,10 @@ import {
 import MyToolTip from "./MyToolTip";
 import useWindowDimensions from "../hooks/useWindowDimensions";
 import PartnerVideo from "./PartnerVideo";
-import useSound from "use-sound";
 
 const Room = (props) => {
-  const [hangUp] = useSound("/sounds/hangupsound.mp3");
-  const [joinIn] = useSound("/sounds/joinsound.mp3");
+  const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
+  const joinInAudio = new Audio("/sounds/joinsound.mp3");
 
   // dynamic width of webpage
   const { width } = useWindowDimensions();
@@ -35,14 +34,15 @@ const Room = (props) => {
 
   // when a user presses the back button, disconnect the socket
   window.onpopstate = () => {
-    userStream.current.getTracks().forEach((track) => track.stop());
+    if (userStream.current) userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
+    window.location.reload();
   };
 
   useEffect(() => {
     // play the join in sound
-    joinIn();
-
+    joinInAudio.play();
+  
     socketRef.current = io.connect("/"); // connecting with the socket.io server
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
@@ -239,7 +239,7 @@ const Room = (props) => {
 
   const endCall = () => {
     // play the call ending sound
-    hangUp();
+    hangUpAudio.play();
 
     // stop al tracks - audio and video
     userStream.current.getTracks().forEach((track) => track.stop());
