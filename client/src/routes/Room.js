@@ -2,15 +2,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
-import { IconButton } from "@material-ui/core";
+import {
+  GridList,
+  GridListTile,
+  GridListTileBar,
+  IconButton
+} from "@material-ui/core";
 import MyToolTip from "./MyToolTip";
 import useWindowDimensions from "../hooks/useWindowDimensions";
-import PartnerVideo from './PartnerVideo';
-import useSound from 'use-sound';
+import PartnerVideo from "./PartnerVideo";
+import useSound from "use-sound";
 
 const Room = (props) => {
-  // dynamic height and width of webpage
   const [playSound] = useSound("/hangupsound.mp3");
+
+  // dynamic width of webpage
   const { width } = useWindowDimensions();
   const [peers, setPeers] = useState([]);
   const [videoMuted, setVideoMuted] = useState(false);
@@ -21,6 +27,7 @@ const Room = (props) => {
   const userStream = useRef();
   const audioTrack = useRef();
   const videoTrack = useRef();
+  const tmpTrack = useRef();
   const screenTrack = useRef();
   const peersRef = useRef([]); // array of peer objects
   const roomID = props.match.params.roomID;
@@ -29,7 +36,7 @@ const Room = (props) => {
   window.onpopstate = () => {
     userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
-  }
+  };
 
   useEffect(() => {
     socketRef.current = io.connect("/"); // connecting with the socket.io server
@@ -43,7 +50,6 @@ const Room = (props) => {
         audioTrack.current = userStream.current.getTracks()[0];
         userVideo.current.srcObject = myStream;
 
-        alert("Copy the meeting url and share with others whom you want to join.");
         socketRef.current.emit("join room", roomID);
 
         // this is received by the user who just joined
@@ -97,7 +103,8 @@ const Room = (props) => {
           // also update the state to remove the left user's video from screen
           setPeers(peers);
         });
-      });
+      })
+      .catch(err => console.log(err));
   }, []);
 
   function createPeer(partnerId, myStream) {
@@ -115,11 +122,17 @@ const Room = (props) => {
             credential: "muazkh",
             username: "webrtc@live.com",
           },
+          {
+            urls: "turn:numb.viagenie.ca?transport=tcp",
+            credential: "muazkh",
+            username: "webrtc@live.com",
+          },
         ],
       },
     });
 
-    myStream.getTracks().forEach((track) => peer.addTrack(track, myStream));
+    if (audioTrack.current) peer.addTrack(audioTrack.current, myStream);
+    if (videoTrack.current) peer.addTrack(videoTrack.current, myStream);
 
     // since here initiator is true, whenever peer is created it signals
     // and the below function gets called
@@ -149,11 +162,17 @@ const Room = (props) => {
             credential: "muazkh",
             username: "webrtc@live.com",
           },
+          {
+            urls: "turn:numb.viagenie.ca?transport=tcp",
+            credential: "muazkh",
+            username: "webrtc@live.com",
+          }
         ],
       },
     });
 
-    myStream.getTracks().forEach((track) => peer.addTrack(track, myStream));
+    if (audioTrack.current) peer.addTrack(audioTrack.current, myStream);
+    if (videoTrack.current) peer.addTrack(videoTrack.current, myStream);
 
     // here initiator is false,
     // so the below event is fired only when our peer accepts the incomingSignal
@@ -170,33 +189,42 @@ const Room = (props) => {
   const shareScreen = () => {
     navigator.mediaDevices.getDisplayMedia({ cursor: true }).then((stream) => {
       setScreenShared(true);
+
+      // store the video track i.e. our web cam stream into tmpTrack
+      // and replace the video track with our screen track
+      // so that it will be streamed on our screen as well as to our remote peers
+      userVideo.current.srcObject = stream;
       screenTrack.current = stream.getTracks()[0];
+      tmpTrack.current = videoTrack.current;
+      videoTrack.current = screenTrack.current;
 
       peersRef.current.forEach((peerObj) => {
         peerObj.peer.replaceTrack(
-          videoTrack.current,
-          screenTrack.current,
+          tmpTrack.current, // prev video track - webcam
+          videoTrack.current, // current video track - screen track
           userStream.current
         );
       });
 
       screenTrack.current.onended = () => {
-        console.log("On ended called");
-        setScreenShared(false);
-        peersRef.current.forEach((peerObj) => {
-          peerObj.peer.replaceTrack(
-            screenTrack.current,
-            videoTrack.current,
-            userStream.current
-          );
-        });
-      };
+        stopShareScreen();
+      }
     });
   };
 
   const stopShareScreen = () => {
-    screenTrack.current.stop();
     setScreenShared(false);
+
+    // restore the videoTrack which was stored earlier in tmpTrack when screensharing was turned on
+    videoTrack.current = tmpTrack.current;
+
+    // stop the screentrack
+    screenTrack.current.stop();
+
+    // reassign our stream to the prev stream i.e. to that consisting of webcam video and audio
+    userVideo.current.srcObject = userStream.current;
+
+    // replace the screenTrack with videotrack for each remote peer
     peersRef.current.forEach((peerObj) => {
       peerObj.peer.replaceTrack(
         screenTrack.current,
@@ -207,15 +235,20 @@ const Room = (props) => {
   };
 
   const endCall = () => {
+    // play the call ending sound
     playSound();
-    leaveRoom();
+
+    // stop al tracks - audio and video
     userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
     props.history.push("/videochat");
-  }
 
-  const leaveRoom = async() => {
-    setTimeout(() => {      
+    // leave the room
+    leaveRoom();
+  };
+
+  const leaveRoom = () => {
+    setTimeout(() => {
       // stop the page from accessing camera and microphone
       window.location.reload();
     }, 1500);
@@ -223,7 +256,6 @@ const Room = (props) => {
 
   const muteVideo = () => {
     if (userVideo.current.srcObject) {
-      // userVideo.current.srcObject.getTracks()[0].disable();
       const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
       userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
     }
@@ -232,108 +264,147 @@ const Room = (props) => {
 
   const muteAudio = () => {
     if (userVideo.current.srcObject) {
-      // userVideo.current.srcObject.getTracks()[0].disable();
-      userVideo.current.srcObject.getAudioTracks()[0].enabled = audioMuted;
+      const original = userVideo.current.srcObject.getAudioTracks()[0].enabled;
+      userVideo.current.srcObject.getAudioTracks()[0].enabled = !original;
     }
     setAudioMuted(!audioMuted);
   };
 
   return (
     <div>
-      <div id="video-grid">
-        <video muted controls ref={userVideo} autoPlay playsInline />
-        {peers.map((peerObj) => {
-          return (
-            <PartnerVideo
-              key={peerObj.peerID}
-              peer={peerObj.peer}
-              user={peerObj.peerID}
-            />
-          );
-        })}
+      <div id="grid-root">
+        <GridList cellHeight='90vh' id="grid-list" cols={2} spacing={20}>
+          <GridListTile key="1" cols={2} rows={1}>
+              <video id="mine" muted controls ref={userVideo} autoPlay playsInline/>
+              <style jsx>
+                {
+                  `
+                    #mine {
+                      transform: ${screenShared ? 'rotateY(0deg)' : 'rotateY(180deg)'};
+                    }
+
+                    #mine::-webkit-media-controls-panel {
+                      transform: ${screenShared ? 'rotateY(0deg)' : 'rotateY(180deg)'};
+                    }
+                  `
+                }
+              </style> 
+              <GridListTileBar
+                title="You"
+                titlePosition="top"
+              />
+          </GridListTile>
+          {peers.map((peerObj) => {
+            return (
+              <GridListTile key={peerObj.peerID} cols={1} rows={2}>
+                <PartnerVideo
+                  key={peerObj.peerID}
+                  peer={peerObj.peer}
+                  user={peerObj.peerID}
+                />
+                <GridListTileBar
+                  title={peerObj.peerID}
+                  titlePosition="top"
+                  actionPosition="right"
+                />
+              </GridListTile>
+            );
+          })}
+        </GridList>
       </div>
       <nav>
-        <h3 style={{position: 'absolute', left: width / 100 * 2}}>
-          { new Date().toLocaleString('en-US', { hour12: true, hour: "numeric", minute: "numeric", weekday: 'long'})}
+        <h3 style={{ position: "absolute", left: (width / 100) * 2 }}>
+          {new Date().toLocaleString("en-US", {
+            hour12: true,
+            hour: "numeric",
+            minute: "numeric",
+            weekday: "long",
+          })}
         </h3>
-        <div style={{position: 'absolute', left: width / 100 * 41}}>
-        <MyToolTip title={videoMuted ? "Turn on Camera" : "Turn off Camera"}>
-          <IconButton
-            onClick={muteVideo}
-            style={{ backgroundColor: videoMuted ? "#eb3f21" : "#404239", margin: width/1000 * 5 }}
-          >
-            {videoMuted ? (
-              <span
-                className="material-icons-outlined"
-                style={{ color: "white" }}
-              >
-                videocam_off
-              </span>
-            ) : (
-              <span
-                className="material-icons-outlined"
-                style={{ color: "white" }}
-              >
-                videocam
-              </span>
-            )}
-          </IconButton>
-        </MyToolTip>
+        <div style={{ position: "absolute", left: (width / 100) * 41 }}>
+          <MyToolTip title={videoMuted ? "Turn on Camera" : "Turn off Camera"}>
+            <IconButton
+              onClick={muteVideo}
+              style={{
+                backgroundColor: videoMuted ? "#eb3f21" : "#404239",
+                margin: (width / 1000) * 5,
+              }}
+            >
+              {videoMuted ? (
+                <span
+                  className="material-icons-outlined"
+                  style={{ color: "white" }}
+                >
+                  videocam_off
+                </span>
+              ) : (
+                <span
+                  className="material-icons-outlined"
+                  style={{ color: "white" }}
+                >
+                  videocam
+                </span>
+              )}
+            </IconButton>
+          </MyToolTip>
 
-        <MyToolTip
-          title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
-        >
-          <IconButton
-            onClick={muteAudio}
-            style={{ backgroundColor: audioMuted ? "#eb3f21" : "#404239", margin: width/1000 * 5 }}
+          <MyToolTip
+            title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
           >
-            {audioMuted ? (
-              <span className="material-icons" style={{ color: "white" }}>
-                mic_off
-              </span>
-            ) : (
-              <span className="material-icons" style={{ color: "white" }}>
-                mic
-              </span>
-            )}
-          </IconButton>
-        </MyToolTip>
+            <IconButton
+              onClick={muteAudio}
+              style={{
+                backgroundColor: audioMuted ? "#eb3f21" : "#404239",
+                margin: (width / 1000) * 5,
+              }}
+            >
+              {audioMuted ? (
+                <span className="material-icons" style={{ color: "white" }}>
+                  mic_off
+                </span>
+              ) : (
+                <span className="material-icons" style={{ color: "white" }}>
+                  mic
+                </span>
+              )}
+            </IconButton>
+          </MyToolTip>
 
-        <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
-          <IconButton
-            onClick={() => {
-              if (screenShared) stopShareScreen();
-              else shareScreen();
-            }}
-            style={{
-              backgroundColor: screenShared ? "#8eb2f5" : "#404239",
-              margin: width/1000 * 5
-            }}
-          >
-            {screenShared ? (
-              <span className="material-icons" style={{ color: "black" }}>
-                cancel_presentation
-              </span>
-            ) : (
-              <span className="material-icons" style={{ color: "white" }}>
-                present_to_all
-              </span>
-            )}
-          </IconButton>
-        </MyToolTip>
+          <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
+            <IconButton
+              onClick={() => {
+                if (screenShared) stopShareScreen();
+                else shareScreen();
+              }}
+              style={{
+                backgroundColor: screenShared ? "#8eb2f5" : "#404239",
+                margin: (width / 1000) * 5,
+              }}
+            >
+              {screenShared ? (
+                <span className="material-icons" style={{ color: "black" }}>
+                  cancel_presentation
+                </span>
+              ) : (
+                <span className="material-icons" style={{ color: "white" }}>
+                  present_to_all
+                </span>
+              )}
+            </IconButton>
+          </MyToolTip>
 
-        <MyToolTip title="Leave Call">
-          <IconButton
-            onClick={endCall}
-            style={{ backgroundColor: "#eb3f21", margin: width/1000 * 5 }}
-          >
-            <span className="material-icons" style={{ color: "white" }}>
-              call_end
-            </span>
-          </IconButton>
-        </MyToolTip>
+          <MyToolTip title="Leave Call">
+            <IconButton
+              onClick={endCall}
+              style={{ backgroundColor: "#eb3f21", margin: (width / 1000) * 5 }}
+            >
+              <span className="material-icons" style={{ color: "white" }}>
+                call_end
+              </span>
+            </IconButton>
+          </MyToolTip>
         </div>
-        <h5 style={{position: 'absolute', right: width / 100 * 3}}>
+        <h5 style={{ position: "absolute", right: (width / 100) * 3 }}>
           {props.match.params.roomID}
         </h5>
       </nav>

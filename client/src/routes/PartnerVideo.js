@@ -12,7 +12,7 @@ const PartnerVideo = (props) => {
   }, []);
 
   return (
-    <video controls playsInline autoPlay ref={videoRef} />
+    <video controls playsInline autoPlay ref={videoRef}/>
   );
 };
 
