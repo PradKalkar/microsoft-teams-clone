@@ -249,25 +249,25 @@ const Room = (props) => {
 
   const muteVideo = () => {
     if (userVideo.current.srcObject) {
-      const original = userVideo.current.srcObject.getVideoTracks()[0].enabled;
-      userVideo.current.srcObject.getVideoTracks()[0].enabled = !original;
+      if (!screenShared){
+        videoTrack.current.enabled = !videoTrack.current.enabled; 
+      }
     }
-    setVideoMuted(!videoMuted);
+    setVideoMuted(prevStatus => !prevStatus);
   };
 
   const muteAudio = () => {
     if (userVideo.current.srcObject) {
-      const original = userStream.current.getAudioTracks()[0].enabled;
-      userStream.current.getAudioTracks()[0].enabled = !original;
+      audioTrack.current.enabled = !audioTrack.current.enabled;
     }
-    setAudioMuted(!audioMuted);
+    setAudioMuted(prevStatus => !prevStatus);
   };
 
   return (
     <div id="room">
       <div id="grid-root">
         <GridList cellHeight='90vh' id="grid-list" cols={2} spacing={20}>
-          <GridListTile key="1" cols={2} rows={1}>
+          <GridListTile key="1" cols={peers.length === 0 || screenShared ? 2 : 1} rows={2}>
               <video id="mine" muted controls ref={userVideo} autoPlay playsInline/>
               <style jsx>
                 {
@@ -315,7 +315,9 @@ const Room = (props) => {
           })}
         </h3>
         <div style={{ position: "absolute", left: (width / 100) * 41 }}>
-          <MyToolTip title={videoMuted ? "Turn on Camera" : "Turn off Camera"}>
+          {
+            !screenShared && 
+            <MyToolTip title={videoMuted ? "Turn on Camera" : "Turn off Camera"}>
             <IconButton
               onClick={muteVideo}
               style={{
@@ -340,6 +342,7 @@ const Room = (props) => {
               )}
             </IconButton>
           </MyToolTip>
+          }
 
           <MyToolTip
             title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
