@@ -42,72 +42,74 @@ const Room = (props) => {
   useEffect(() => {
     // play the join in sound
     joinInAudio.play();
+
+    setTimeout(() => {
+      socketRef.current = io.connect("/"); // connecting with the socket.io server
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((myStream) => {
+          // show this alert to every user who joins the chat
+          userStream.current = myStream;
+          videoTrack.current = userStream.current.getTracks()[1];
+          audioTrack.current = userStream.current.getTracks()[0];
+          userVideo.current.srcObject = myStream;
   
-    socketRef.current = io.connect("/"); // connecting with the socket.io server
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((myStream) => {
-        // show this alert to every user who joins the chat
-        userStream.current = myStream;
-        videoTrack.current = userStream.current.getTracks()[1];
-        audioTrack.current = userStream.current.getTracks()[0];
-        userVideo.current.srcObject = myStream;
-
-        socketRef.current.emit("join room", roomID);
-
-        // this is received by the user who just joined
-        // we get all the users present in the room
-        socketRef.current.on("all other users", (partners) => {
-          // create a peer for us corresponding to connection to every other user in the room
-          partners.forEach((partnerId) => {
-            const peer = createPeer(partnerId, myStream);
-            peersRef.current.push({
-              peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
-              peer,
+          socketRef.current.emit("join room", roomID);
+  
+          // this is received by the user who just joined
+          // we get all the users present in the room
+          socketRef.current.on("all other users", (partners) => {
+            // create a peer for us corresponding to connection to every other user in the room
+            partners.forEach((partnerId) => {
+              const peer = createPeer(partnerId, myStream);
+              peersRef.current.push({
+                peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
+                peer,
+              });
             });
+            setPeers([...peersRef.current]); // update the state to render their streams
           });
-          setPeers([...peersRef.current]); // update the state to render their streams
-        });
-
-        // this event is received by a user who is already present within the room
-        // so we need to add peer corresponding to the new comer
-        // we are also receiving peer signal(offer) from new comer
-        socketRef.current.on("user joined", (payload) => {
-          const peer = addPeer(payload.signal, payload.callerID, myStream);
-          peersRef.current.push({
-            peerID: payload.callerID,
-            peer, // this is equivalent to peer: peer
+  
+          // this event is received by a user who is already present within the room
+          // so we need to add peer corresponding to the new comer
+          // we are also receiving peer signal(offer) from new comer
+          socketRef.current.on("user joined", (payload) => {
+            const peer = addPeer(payload.signal, payload.callerID, myStream);
+            peersRef.current.push({
+              peerID: payload.callerID,
+              peer, // this is equivalent to peer: peer
+            });
+  
+            // add new peerobj to peers state
+            setPeers([...peersRef.current]);
           });
-
-          // add new peerobj to peers state
-          setPeers([...peersRef.current]);
-        });
-
-        // now the peer who has joined just now is receiving the retrned signal
-        // from the peers to whom it had sent signal to
-        socketRef.current.on("answer", (payload) => {
-          // finding the corresponding peer which is item.peer
-          const item = peersRef.current.find((p) => p.peerID === payload.id);
-          item.peer.signal(payload.signal); // accepting the returned signal
-          // this completes the handshake
-        });
-
-        socketRef.current.on("user left", (userId) => {
-          const peerObj = peersRef.current.find((p) => p.peerID === userId);
-          if (peerObj) {
-            // remove all the connections and event handlers associated with this peer
-            peerObj.peer.destroy();
-          }
-          const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
-
-          // update peersRef
-          peersRef.current = peers;
-
-          // also update the state to remove the left user's video from screen
-          setPeers(peers);
-        });
-      })
-      .catch(err => console.log(err));
+  
+          // now the peer who has joined just now is receiving the retrned signal
+          // from the peers to whom it had sent signal to
+          socketRef.current.on("answer", (payload) => {
+            // finding the corresponding peer which is item.peer
+            const item = peersRef.current.find((p) => p.peerID === payload.id);
+            item.peer.signal(payload.signal); // accepting the returned signal
+            // this completes the handshake
+          });
+  
+          socketRef.current.on("user left", (userId) => {
+            const peerObj = peersRef.current.find((p) => p.peerID === userId);
+            if (peerObj) {
+              // remove all the connections and event handlers associated with this peer
+              peerObj.peer.destroy();
+            }
+            const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
+  
+            // update peersRef
+            peersRef.current = peers;
+  
+            // also update the state to remove the left user's video from screen
+            setPeers(peers);
+          });
+        })
+        .catch(err => console.log(err));
+    }, 1000);
   }, []);
 
   function createPeer(partnerId, myStream) {
