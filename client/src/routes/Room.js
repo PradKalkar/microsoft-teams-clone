@@ -121,9 +121,9 @@ const Room = (props) => {
             urls: "stun:stun.stunprotocol.org",
           },
           {
-            urls: "turn:numb.viagenie.ca",
-            credential: "muazkh",
-            username: "webrtc@live.com",
+            urls: "turn:100.25.34.119:3478?transport=tcp",
+            username: "kurento",
+            credential: "kurento"
           }
         ],
       },
