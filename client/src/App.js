@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch } from "react-router-dom";
 import Room from "./routes/Room";
-import GoogleButton from 'react-google-button'
 import VideoChatHome from "./routes/VideoChatHome";
 import './App.css'
 
@@ -21,9 +20,6 @@ function HomePage() {
   return (
     <div>
       <h1>Home Page</h1>
-      <GoogleButton onClick={() => {
-        window.location.href='https://pradnesh-msteams-clone.azurewebsites.net/.auth/login/google';
-      }}/>
     </div>
   )
 }
