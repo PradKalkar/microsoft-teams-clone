@@ -1,0 +1,1137 @@
+/*! normalize.css v3.0.2 | MIT License | git.io/normalize */
+
+/**
+ * 1. Set default font family to sans-serif.
+ * 2. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+html {
+  font-family: sans-serif; /* 1 */
+  -ms-text-size-adjust: 100%; /* 2 */
+  -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/**
+ * Remove default margin.
+ */
+
+body {
+  margin: 0;
+}
+
+/* HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined for any HTML5 element in IE 8/9.
+ * Correct `block` display not defined for `details` or `summary` in IE 10/11
+ * and Firefox.
+ * Correct `block` display not defined for `main` in IE 11.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+menu,
+nav,
+section,
+summary {
+  display: block;
+}
+
+/**
+ * 1. Correct `inline-block` display not defined in IE 8/9.
+ * 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
+ */
+
+audio,
+canvas,
+progress,
+video {
+  display: inline-block; /* 1 */
+  vertical-align: baseline; /* 2 */
+}
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+
+/**
+ * Address `[hidden]` styling not present in IE 8/9/10.
+ * Hide the `template` element in IE 8/9/11, Safari, and Firefox < 22.
+ */
+
+[hidden],
+template {
+  display: none;
+}
+
+/* Links
+   ========================================================================== */
+
+/**
+ * Remove the gray background color from active links in IE 10.
+ */
+
+a {
+  background-color: transparent;
+}
+
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+  outline: 0;
+}
+
+/* Text-level semantics
+   ========================================================================== */
+
+/**
+ * Address styling not present in IE 8/9/10/11, Safari, and Chrome.
+ */
+
+abbr[title] {
+  border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 4+, Safari, and Chrome.
+ */
+
+b,
+strong {
+  font-weight: bold;
+}
+
+/**
+ * Address styling not present in Safari and Chrome.
+ */
+
+dfn {
+  font-style: italic;
+}
+
+/**
+ * Address variable `h1` font-size and margin within `section` and `article`
+ * contexts in Firefox 4+, Safari, and Chrome.
+ */
+
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+/**
+ * Address styling not present in IE 8/9.
+ */
+
+mark {
+  background: #ff0;
+  color: #000;
+}
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+
+small {
+  font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sup {
+  top: -0.5em;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+/* Embedded content
+   ========================================================================== */
+
+/**
+ * Remove border when inside `a` element in IE 8/9/10.
+ */
+
+img {
+  border: 0;
+}
+
+/**
+ * Correct overflow not hidden in IE 9/10/11.
+ */
+
+svg:not(:root) {
+  overflow: hidden;
+}
+
+/* Grouping content
+   ========================================================================== */
+
+/**
+ * Address margin not present in IE 8/9 and Safari.
+ */
+
+figure {
+  margin: 1em 40px;
+}
+
+/**
+ * Address differences between Firefox and other browsers.
+ */
+
+hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+/**
+ * Contain overflow in all browsers.
+ */
+
+pre {
+  overflow: auto;
+}
+
+/**
+ * Address odd `em`-unit font size rendering in all browsers.
+ */
+
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+/* Forms
+   ========================================================================== */
+
+/**
+ * Known limitation: by default, Chrome and Safari on OS X allow very limited
+ * styling of `select`, unless a `border` property is set.
+ */
+
+/**
+ * 1. Correct color not being inherited.
+ *    Known issue: affects color of disabled elements.
+ * 2. Correct font properties not being inherited.
+ * 3. Address margins set differently in Firefox 4+, Safari, and Chrome.
+ */
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit; /* 1 */
+  font: inherit; /* 2 */
+  margin: 0; /* 3 */
+}
+
+/**
+ * Address `overflow` set to `hidden` in IE 8/9/10/11.
+ */
+
+button {
+  overflow: visible;
+}
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.
+ * Correct `select` style inheritance in Firefox.
+ */
+
+button,
+select {
+  text-transform: none;
+}
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ */
+
+button,
+html input[type="button"], /* 1 */
+input[type="reset"],
+input[type="submit"] {
+  -webkit-appearance: button; /* 2 */
+  cursor: pointer; /* 3 */
+}
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+
+button[disabled],
+html input[disabled] {
+  cursor: default;
+}
+
+/**
+ * Remove inner padding and border in Firefox 4+.
+ */
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+input {
+  line-height: normal;
+}
+
+/**
+ * It's recommended that you don't attempt to style these elements.
+ * Firefox's implementation doesn't respect box-sizing, padding, or width.
+ *
+ * 1. Address box sizing set to `content-box` in IE 8/9/10.
+ * 2. Remove excess padding in IE 8/9/10.
+ */
+
+input[type="checkbox"],
+input[type="radio"] {
+  box-sizing: border-box; /* 1 */
+  padding: 0; /* 2 */
+}
+
+/**
+ * Fix the cursor style for Chrome's increment/decrement buttons. For certain
+ * `font-size` values of the `input`, it causes the cursor style of the
+ * decrement button to change from `default` to `text`.
+ */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari and Chrome
+ *    (include `-moz` to future-proof).
+ */
+
+input[type="search"] {
+  -webkit-appearance: textfield; /* 1 */
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box; /* 2 */
+  box-sizing: content-box;
+}
+
+/**
+ * Remove inner padding and search cancel button in Safari and Chrome on OS X.
+ * Safari (but not Chrome) clips the cancel button when the search input has
+ * padding (and `textfield` appearance).
+ */
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+
+fieldset {
+  border: 1px solid #c0c0c0;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em;
+}
+
+/**
+ * 1. Correct `color` not being inherited in IE 8/9/10/11.
+ * 2. Remove padding so people aren't caught out if they zero out fieldsets.
+ */
+
+legend {
+  border: 0; /* 1 */
+  padding: 0; /* 2 */
+}
+
+/**
+ * Remove default vertical scrollbar in IE 8/9/10/11.
+ */
+
+textarea {
+  overflow: auto;
+}
+
+/**
+ * Don't inherit the `font-weight` (applied by a rule above).
+ * NOTE: the default cannot safely be changed in Chrome and Safari on OS X.
+ */
+
+optgroup {
+  font-weight: bold;
+}
+
+/* Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+td,
+th {
+  padding: 0;
+}
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+
+/**
+ * Remove anchor text-decoration
+ */
+
+a {
+  text-decoration: none;
+}
+
+/**
+ * Remove list-style
+ */
+
+ol,
+ul {
+  list-style: none;
+}
+
+html,
+body,
+div,
+span,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+a,
+em,
+img,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+article,
+footer,
+header,
+nav,
+section,
+main {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  vertical-align: baseline;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;900&display=swap");
+:root {
+  --azul: #4d96a9;
+  --azul-claro: #8fe3f9;
+  --bg-azul-claro: #71c0d4;
+  --roxo: #855fb1;
+  --roxo-claro: #d9b8ff;
+  --vinho: #28283d;
+  --vinho-claro: #87879d;
+  --branco: #fafafa;
+}
+
+body {
+  width: 100%;
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 1.125em;
+  line-height: 26px;
+  color: var(--vinho-claro);
+}
+
+h1 {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 900;
+  font-size: 64px;
+  line-height: 64px;
+  color: var(--vinho);
+}
+
+h2 {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: bold;
+  font-size: 2.5em;
+  line-height: 44px;
+  color: var(--vinho);
+}
+
+#topo {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 50px;
+}
+
+#logo {
+  padding: 80px 0 60px 0;
+}
+
+#banner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin: 0 auto;
+  vertical-align: middle;
+  width: 100%;
+}
+
+#banner-01 {
+  background: url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-left.png) no-repeat left;
+  height: 303px;
+  width: 100%;
+}
+
+#banner-02 {
+  width: 100%;
+  padding: 90px 20px;
+}
+
+#banner-03 {
+  background: url("https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-right.png") no-repeat right;
+  height: 303px;
+  width: 100%;
+}
+
+.botoes {
+  display: flex;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 auto;
+  width: 500px;
+}
+
+.btn-azul {
+  background-color: var(--azul);
+  color: white;
+  font-size: 22px;
+  border-radius: 20px;
+  padding: 10px 23px;
+  margin: 10px 20px;
+  width: 200px;
+  cursor: pointer;
+  border-color: transparent;
+}
+
+.btn-azul:hover {
+  background-color: var(--bg-azul-claro);
+  color: white;
+}
+
+.btn-azul span {
+  color: var(--azul-claro);
+}
+
+.btn-roxo {
+  background-color: var(--roxo);
+  color: white;
+  font-size: 22px;
+  border-radius: 20px;
+  padding: 10px 23px;
+  margin: 10px 20px;
+  width: 200px;
+  cursor: pointer;
+  border-color: transparent;
+}
+
+.btn-roxo:hover {
+  background-color: var(--roxo-claro);
+}
+
+.btn-roxo-f {
+  background-color: var(--roxo);
+  color: white;
+  font-size: 25px;
+  border-radius: 20px;
+  padding: 10px 23px;
+  margin: 10px 20px;
+  width: 200px;
+  cursor: pointer;
+  border-color: transparent;
+}
+
+.btn-roxo-f:hover {
+  background-color: var(--roxo-claro);
+}
+
+#banner-02 p {
+  margin: 35px 0 20px 0;
+}
+
+.separador {
+  margin-top: 90px;
+  margin-bottom: -130px;
+  text-align: center;
+}
+
+.marcador {
+  border: 1px solid rgba(135, 135, 157, 0.25);
+  border-radius: 50px;
+  width: 25px;
+  padding: 10px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--vinho-claro);
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 900;
+}
+
+.separador::before {
+  content: "";
+  border-left: 1px solid rgba(135, 135, 157, 0.25);
+  height: 300px;
+  margin-bottom: 330px;
+  padding-top: 85px;
+}
+
+#conteudo {
+  padding-top: 110px;
+  margin-bottom: 166px;
+}
+
+.galeria {
+  width: 1110px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  margin: 0 auto;
+  padding-top: 65px;
+}
+
+.galeria img {
+  width: 255px;
+  height: 242px;
+  border-radius: 10px;
+}
+
+.galeria div:nth-child(odd) {
+  margin-left: 10px;
+}
+
+.galeria div:nth-child(even) {
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.texto {
+  width: 570px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 15px;
+}
+
+.texto h2 {
+  padding: 10px 42px 20px 42px;
+}
+
+.titulo {
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 1em;
+  font-weight: 900;
+  line-height: 26px;
+  color: var(--azul);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin: 80px 0 20px 0;
+}
+
+#footer {
+  background: linear-gradient(rgba(77, 150, 169, 0.9), rgba(77, 150, 169, 0.8)),
+    url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-footer.jpg) no-repeat;
+  background-size: cover;
+  width: 100%;
+  height: 308px;
+  margin-top: -25px;
+}
+
+.footer-cont {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  color: var(--branco);
+  width: 90%;
+  margin: 0 auto;
+  padding-top: 165px;
+}
+
+.footer-cont h2 {
+  color: var(--branco);
+}
+
+.col-2 {
+  text-align: left;
+  line-height: 26px;
+  padding-left: 30px;
+}
+
+.col-2 p {
+  font-size: 18px;
+}
+
+.col-3 {
+  text-align: center;
+  padding-left: 120px;
+}
+
+.separador-second {
+  text-align: center;
+  position: relative;
+  z-index: 9;
+}
+
+.marcador-second {
+  border: 1px solid rgba(135, 135, 157, 0.25);
+  border-radius: 50px;
+  width: 25px;
+  padding: 10px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--vinho-claro);
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 900;
+  background-color: var(--branco);
+}
+
+.separador-second::before {
+  content: "";
+  border-left: 1px solid rgba(135, 135, 157, 0.25);
+  height: 300px;
+  padding-top: 85px;
+}
+
+/* TABLET (1024px - 768px) */
+@media only screen and (max-width: 1024px) and (min-width: 768px) {
+  body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  p {
+    font-size: 16px;
+    line-height: 26px;
+  }
+  #banner {
+    display: flex;
+    flex-direction: column;
+  }
+  #banner-01 {
+    background: url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-hero.png);
+    background-position: center;
+    height: 303px;
+    width: 100%;
+  }
+  #banner-02 {
+    margin: 0 auto;
+    width: 460px;
+    padding-bottom: 60px;
+  }
+  #banner-02 h1 {
+    font-size: 40px;
+    line-height: 40px;
+  }
+  #banner-03 {
+    display: none;
+  }
+  #conteudo {
+    margin-bottom: 156px;
+  }
+  .galeria {
+    width: 90%;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin: 0 auto;
+    margin-top: 15px;
+  }
+  .galeria img {
+    width: 95%;
+    height: 95%;
+    border-radius: 10px;
+    margin-left: 0;
+  }
+  .galeria div:nth-child(odd) {
+    padding-right: 10px;
+  }
+  .galeria div:nth-child(even) {
+    margin-right: 1px;
+    padding-right: 1px;
+  }
+  .texto {
+    width: 460px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .texto h2 {
+    font-size: 40px;
+    line-height: 44px;
+  }
+  .titulo {
+    margin-top: 30px;
+  }
+  #footer {
+    background: linear-gradient(
+        rgba(77, 150, 169, 0.9),
+        rgba(77, 150, 169, 0.8)
+      ),
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-footer.jpg) no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    margin-top: -25px;
+  }
+  .footer-cont {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .col-1 {
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .col-2 {
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    padding: 32px 0 40px 0;
+  }
+  .col-3 {
+    margin: 0 auto;
+    text-align: center;
+    padding: 0 0 66px 0;
+  }
+}
+
+/* MOBILE - PHONE (725px - 375px) */
+@media only screen and (max-width: 725px) and (min-width: 375px) {
+  body {
+    width: 100%;
+    margin: 0 auto;
+  }
+  p {
+    font-size: 16px;
+    line-height: 26px;
+  }
+  #banner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+  }
+  #banner-01 {
+    background: url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-hero.png);
+    background-position: center;
+    height: 303px;
+    width: 100%;
+  }
+  #banner-02 {
+    margin: 0 auto;
+    width: 300px;
+    padding: 0px;
+  }
+  #banner-02 h1 {
+    margin-top: 50px;
+    font-size: 40px;
+    line-height: 40px;
+  }
+  .botoes {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0px;
+    margin-bottom: 75px;
+  }
+  .btn-azul,
+  .btn-roxo {
+    margin: 0 auto;
+    margin-bottom: 15px;
+  }
+  #banner-03 {
+    display: none;
+  }
+  #conteudo {
+    padding-top: 0;
+  }
+  .galeria {
+    width: 90%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0 auto;
+    margin-top: 35px;
+  }
+  .galeria img {
+    width: 95%;
+    height: 95%;
+    border-radius: 10px;
+    margin-left: 0;
+  }
+  .galeria div:nth-child(odd) {
+    padding-right: 10px;
+  }
+  .galeria div:nth-child(even) {
+    margin-right: 0;
+    padding-right: 0;
+  }
+  .texto {
+    width: 300px;
+    padding: 0;
+  }
+  .texto h2 {
+    font-size: 32px;
+    line-height: 36px;
+    padding: 5px 0px 32px 0;
+  }
+  .titulo {
+    font-size: 16px;
+    line-height: 26px;
+  }
+  .separador-second {
+    margin-bottom: -20px;
+  }
+  #footer {
+    background: linear-gradient(
+        rgba(77, 150, 169, 0.9),
+        rgba(77, 150, 169, 0.8)
+      ),
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg) no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: 428px;
+  }
+  .col-1 h2 {
+    margin: 0 auto;
+    width: 300px;
+    padding: 64px 0 24px 0;
+    font-size: 32px;
+    line-height: 36px;
+    text-align: center;
+  }
+  .col-2 p {
+    padding: 0 24px 32px 24px;
+    text-align: center;
+  }
+  .btn-roxo-f {
+    background-color: var(--roxo);
+    color: white;
+    font-size: 14px;
+    border-radius: 20px;
+    padding: 10px 23px;
+    margin: 0 auto;
+    width: 150px;
+    cursor: pointer;
+  }
+  .footer-cont {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .separador,
+  .footer-cont,
+  .col1,
+  .col-2,
+  .col-3,
+  #built,
+  #footer {
+    margin: 0 auto;
+    width: 100%;
+    padding: 0px;
+  }
+}
+
+/* MOBILE - PHONE (376px - 320px) */
+
+@media only screen and (max-width: 376px) and (min-width: 320px) {
+  body {
+    width: 100%;
+    margin: 0 auto;
+  }
+  p {
+    font-size: 16px;
+    line-height: 26px;
+  }
+  #banner {
+    display: flex;
+    flex-direction: column;
+  }
+  #banner-01 {
+    background: url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-hero.png);
+    background-position: center;
+    height: 303px;
+    width: 100%;
+  }
+  #banner-02 {
+    margin: 0 auto;
+    width: 300px;
+    padding: 0px;
+  }
+  #banner-02 h1 {
+    margin-top: 50px;
+    font-size: 40px;
+    line-height: 40px;
+  }
+  .botoes {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0px;
+    margin-bottom: 75px;
+  }
+  .btn-azul,
+  .btn-roxo {
+    margin: 0 auto;
+    margin-bottom: 15px;
+  }
+  #banner-03 {
+    display: none;
+  }
+  #conteudo {
+    padding-top: 60px;
+  }
+  .galeria {
+    width: 90%;
+    padding: 0;
+    grid-template-columns: 1fr 1fr;
+  }
+  .galeria img {
+    width: 95%;
+    height: 95%;
+    border-radius: 10px;
+    margin-left: 0;
+  }
+  .galeria div:nth-child(odd) {
+    padding-right: 5px;
+  }
+  .galeria div:nth-child(even) {
+    margin-right: 0;
+    padding-right: 0;
+  }
+  .texto {
+    width: 300px;
+    padding: 0;
+  }
+  .texto h2 {
+    font-size: 32px;
+    line-height: 36px;
+    padding: 5px 0px 32px 0;
+  }
+  .titulo {
+    font-size: 16px;
+    line-height: 26px;
+  }
+  .separador-second {
+    margin-bottom: -20px;
+  }
+  #footer {
+    background: linear-gradient(
+        rgba(77, 150, 169, 0.9),
+        rgba(77, 150, 169, 0.8)
+      ),
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg) no-repeat;
+    background-size: cover;
+    width: 100%;
+    height: 428px;
+  }
+  .col-1 h2 {
+    margin: 0 auto;
+    width: 300px;
+    padding: 64px 0 24px 0;
+    font-size: 32px;
+    line-height: 36px;
+    text-align: center;
+  }
+  .col-2 p {
+    padding: 0 24px 32px 24px;
+    text-align: center;
+  }
+  .btn-roxo-f {
+    background-color: var(--roxo);
+    color: white;
+    font-size: 14px;
+    border-radius: 20px;
+    padding: 10px 23px;
+    margin: 0 auto;
+    width: 150px;
+    cursor: pointer;
+  }
+  .footer-cont {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .separador,
+  .footer-cont,
+  .col1,
+  .col-2,
+  .col-3,
+  #built,
+  #footer {
+    margin: 0 auto;
+    width: 100%;
+    padding: 0px;
+  }
+}
