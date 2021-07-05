@@ -14,7 +14,7 @@ import PartnerVideo from "./PartnerVideo";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const Room = (props) => {
-  const { isAuthenticated, loginWithRedirect, logout, isLoading } = useAuth0();
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
 
