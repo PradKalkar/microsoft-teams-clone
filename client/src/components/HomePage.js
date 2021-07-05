@@ -1,7 +1,5 @@
-import LogoutButton from "./LogoutButton";
-import LoginButton from "./LoginButton";
-import Profile from "./Profile";
 import { useAuth0 } from "@auth0/auth0-react";
+import CircularProgress from '@material-ui/core/CircularProgress';
 import "./HomePage.css";
 
 const HomePage = (props) => {
@@ -20,11 +18,14 @@ const HomePage = (props) => {
 
   const chatHandler = () => {};
 
-  if (isLoading) return <div>Loading...</div>;
-
   return (
     <>
-      {!isAuthenticated ? (
+      {isLoading ? (
+        <center style={{marginTop: "5px"}}>
+          <CircularProgress color="secondary" />
+        </center>
+      ) :
+      (!isAuthenticated ? (
         <nav id="homepage-nav">
           <button class="btn-roxo" onClick={() => loginWithRedirect()}>
             Log In
@@ -51,12 +52,13 @@ const HomePage = (props) => {
             Hi, {"name" in user ? user.name : user.email}!
           </h3>
         </nav>
-      )}
+      ))
+      }
       <section id="topo">
         <div id="logo">
           <h2>Konnect Well</h2>
           <img
-            src="/images/video-talk-logo-designs-template-video-chat-logo-designs-vector.jpg"
+            src="/images/logo.png"
             height="100vh"
             alt="Logo Meet"
           />
@@ -157,6 +159,9 @@ const HomePage = (props) => {
             </p>
           </div>
           <div class="col-3">
+            {
+            !isLoading ?
+            (
             <button class="btn-roxo-f" onClick={() => loginWithRedirect()}>
               <div>
                 {!isAuthenticated ? "Log In" : "Log Out"}
@@ -167,7 +172,12 @@ const HomePage = (props) => {
                   {!isAuthenticated ? "login" : "logout"}
                 </span>
               </div>
-            </button>
+            </button>)
+            :
+            (
+              <CircularProgress color="secondary" />
+            )
+            }   
           </div>
         </div>
       </section>

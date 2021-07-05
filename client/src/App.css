@@ -1,4 +1,10 @@
-nav{
+#homepage-nav{
+  height: 2vh;
+  margin-right: 1%;
+  margin-left: 1%;
+}
+
+#video-controls{
   bottom: 0px;
   right: 0px;
   left: 0px;
