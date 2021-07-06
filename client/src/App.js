@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import Room from "./routes/Room";
+import VideoChat from "./routes/VideoChat";
 import VideoChatHome from "./routes/VideoChatHome";
 import HomePage from './components/HomePage';
 import './App.css'
@@ -11,7 +11,7 @@ const App = () => {
       <Switch>
         <Route path="/videochat" exact component={VideoChatHome} />
         <Route path="/" exact component={HomePage} />
-        <Route path="/videochat/room/:roomID" component={Room} />
+        <Route path="/videochat/room/:roomID" component={VideoChat} />
       </Switch>
     </BrowserRouter>
   );

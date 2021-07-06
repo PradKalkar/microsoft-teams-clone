@@ -4,22 +4,25 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faKeyboard } from "@fortawesome/free-solid-svg-icons";
 import { v1 as uuid } from "uuid";
+import io from "socket.io-client";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import "./VideoChatHome.scss";
 
 
 const VideoChatHome = (props) => {
   const [link, setLink] = useState("");
+  const [loading, setLoading] = useState(false);
   const { isAuthenticated, loginWithRedirect, isLoading, logout, user } =
     useAuth0();
 
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
+      alert("You cannot visit this page without logging in. Please log in to continue.")
       loginWithRedirect({
         redirectUri: window.location.origin,
       });
     }
-  }, []);
+  }, [isLoading]);
 
   const handleInputChange = (event) => {
     setLink(event.target.value);
@@ -27,60 +30,58 @@ const VideoChatHome = (props) => {
 
   const startNewMeeting = () => {
     const roomId = uuid();
-    props.history.push(`/videochat/room/${roomId}`); // #init signifies admin
+    // check if someone is not already present
+    const socket = io.connect("/");
+    socket.emit("check", roomId);
+    setLoading(true);
+    socket.on("no", () => {
+      setLoading(false);
+      console.log("response received", roomId);
+      setLink("");
+      props.history.push({
+        pathname: `/videochat/room/${roomId}`,
+        state: {
+          authorised: true
+        }
+      });
+    })
   };
 
   const handleExistingMeetJoin = () => {
-    // in link find the characters after the /
-    const len = link.length;
-    let i = len - 1;
-    for (; i >= 0; i--) {
-      if (link[i] === "/") break;
-    }
-    i++;
-    let roomId = link.substr(i);
-    // check last 5 characters of roomId
-    // remove them if they are "#init"
-    const lastFive = link.substr(i - 5);
-    if (lastFive === "#init") {
-      roomId = roomId.slice(i, -5);
-    }
-
-    if (i !== 0) {
-      // verify the meet url
-      if (
-        link ===
-        `https://pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`
-      ) {
-        // correct
-      } else if (
-        link ===
-        `pradnesh-msteams-clone.azurewebsites.net/videochat/room/${roomId}`
-      ) {
-        // correct
-      } else {
-        alert("Invalid Link. Please verify the link or code you entered.");
-        return;
-      }
-
-      // if correct
+    const roomId = link;
+    // check if someone is already present
+    const socket = io.connect("/");
+    socket.emit("check", roomId);
+    setLoading(true);
+    socket.on("yes", () => {
+      setLoading(false);
+      console.log("response received", roomId);
       setLink("");
-      props.history.push(`/videochat/room/${roomId}`);
-    } else {
-      // correct
+      props.history.push({
+        pathname: `/videochat/room/${roomId}`,
+        state: {
+          authorised: true
+        }
+      });
+    })
+    socket.on("no", () => {
+      setLoading(false);
       setLink("");
-      props.history.push(`/videochat/room/${roomId}`);
-    }
+      alert("Meeting code is invalid. Please try again.");
+      socket.disconnect();
+    })
   };
 
   return (
-    <div className="top-level-div">
-      {isLoading ? (
+      (isLoading || loading || !isAuthenticated) ? (
+      <div className="top-level-div">
         <center style={{ marginTop: "5px" }}>
           <CircularProgress color="secondary" />
         </center>
-      ) : (
-        <>
+      </div> ) :
+      (
+        <div className="top-level-div">
+      { isAuthenticated &&
           <nav className="homepage-nav-1">
             <h3
               style={{
@@ -105,6 +106,7 @@ const VideoChatHome = (props) => {
               Log Out
             </button>
           </nav>
+          }
           <nav className="homepage-nav-1">
             <button
               className="btn"
@@ -119,9 +121,7 @@ const VideoChatHome = (props) => {
             >
               Home
             </button>
-          </nav>
-        </>
-      )}
+      </nav>
       <div className="home-page">
         <center style={{ marginTop: "120px" }}>
           <h2>Konnect Well</h2>
@@ -165,7 +165,8 @@ const VideoChatHome = (props) => {
         </center>
       </div>
     </div>
-  );
+      )
+  )
 };
 
 export default VideoChatHome;

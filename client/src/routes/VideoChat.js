@@ -14,7 +14,7 @@ import PartnerVideo from "./PartnerVideo";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const Room = (props) => {
-  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
 
@@ -43,87 +43,108 @@ const Room = (props) => {
   };
 
   useEffect(() => {
-    // check if the user is authenticated
-    if (!isAuthenticated) {
-      loginWithRedirect({
-        redirectUri: window.location.origin
-      })
-    } else {
-      // play the join in sound
-      joinInAudio.play();
-
-      setTimeout(() => {
-        socketRef.current = io.connect("/"); // connecting with the socket.io server
-        navigator.mediaDevices
-          .getUserMedia({ video: true, audio: true })
-          .then((myStream) => {
-            // show this alert to every user who joins the chat
-            userStream.current = myStream;
-            videoTrack.current = userStream.current.getTracks()[1];
-            audioTrack.current = userStream.current.getTracks()[0];
-            userVideo.current.srcObject = myStream;
-
-            socketRef.current.emit("join room", roomID);
-
-            // this is received by the user who just joined
-            // we get all the users present in the room
-            socketRef.current.on("all other users", (partners) => {
-              // create a peer for us corresponding to connection to every other user in the room
-              partners.forEach((partnerId) => {
-                const peer = createPeer(partnerId, myStream);
-                peersRef.current.push({
-                  peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
-                  peer,
-                });
-              });
-              setPeers([...peersRef.current]); // update the state to render their streams
-            });
-
-            // this event is received by a user who is already present within the room
-            // so we need to add peer corresponding to the new comer
-            // we are also receiving peer signal(offer) from new comer
-            socketRef.current.on("user joined", (payload) => {
-              const peer = addPeer(payload.signal, payload.callerID, myStream);
-              peersRef.current.push({
-                peerID: payload.callerID,
-                peer, // this is equivalent to peer: peer
-              });
-
-              // add new peerobj to peers state
-              setPeers([...peersRef.current]);
-            });
-
-            // now the peer who has joined just now is receiving the retrned signal
-            // from the peers to whom it had sent signal to
-            socketRef.current.on("answer", (payload) => {
-              // finding the corresponding peer which is item.peer
-              const item = peersRef.current.find(
-                (p) => p.peerID === payload.id
-              );
-              item.peer.signal(payload.signal); // accepting the returned signal
-              // this completes the handshake
-            });
-
-            socketRef.current.on("user left", (userId) => {
-              const peerObj = peersRef.current.find((p) => p.peerID === userId);
-              if (peerObj) {
-                // remove all the connections and event handlers associated with this peer
-                peerObj.peer.destroy();
-              }
-              const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
-
-              // update peersRef
-              peersRef.current = peers;
-
-              // also update the state to remove the left user's video from screen
-              setPeers(peers);
-            });
+      if (!isLoading){
+        if (!isAuthenticated){
+          alert("You are not logged in and will be redirected to the home page after login. Please log in and join again.")
+          loginWithRedirect({
+            redirectUri: window.location.origin
           })
-          .catch((err) => console.log(err));
-      }, 1000);
-    }
-  }, []);
-
+        }
+        else{
+          if (!props.location.state){
+            alert("You cannot visit this page directly. Please head over to the videochat's home page to start a new meeting or join an existing one. After you click ok, you will be redirected to the home page.")
+            window.location.href = window.location.origin;
+          }
+          else{
+                // play the join in sound
+            joinInAudio.play();
+        
+            setTimeout(() => {
+              socketRef.current = io.connect("/"); // connecting with the socket.io server
+              navigator.mediaDevices
+                .getUserMedia({ video: true, audio: true })
+                .then((myStream) => {
+                  // show this alert to every user who joins the chat
+                  userStream.current = myStream;
+                  videoTrack.current = userStream.current.getTracks()[1];
+                  audioTrack.current = userStream.current.getTracks()[0];
+                  userVideo.current.srcObject = myStream;
+        
+                  socketRef.current.emit("join room", {room: roomID, userIdentity: "name" in user ? user.name : user.email});
+        
+                  // this is received by the user who just joined
+                  // we get all the users present in the room
+                  socketRef.current.on("all other users", (partners) => {
+                    // create a peer for us corresponding to connection to every other user in the room
+                    partners.forEach((partnerId) => {
+                      const peer = createPeer(partnerId, myStream);
+                      peersRef.current.push({
+                        peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
+                        userIdentity: "Loading...",
+                        peer,
+                      });
+                    });
+                    setPeers([...peersRef.current]); // update the state to render their streams
+                  });
+        
+                  // this event is received by a user who is already present within the room
+                  // so we need to add peer corresponding to the new comer
+                  // we are also receiving peer signal(offer) from new comer
+                  socketRef.current.on("user joined", (payload) => {
+                    const peer = addPeer(payload.signal, payload.callerID, myStream);
+                    peersRef.current.push({
+                      peerID: payload.callerID,
+                      userIdentity: payload.userIdentity,
+                      peer, // this is equivalent to peer: peer
+                    });
+        
+                    // add new peerobj to peers state
+                    setPeers([...peersRef.current]);
+                    alert(`${payload.userIdentity} joined the meeting.`)
+                  });
+        
+                  // now the peer who has joined just now is receiving the retrned signal
+                  // from the peers to whom it had sent signal to
+                  socketRef.current.on("answer", (payload) => {
+                    // finding the corresponding peer which is item.peer
+                    peersRef.current.find(
+                      (p, index) => {
+                        if (p.peerID === payload.id){
+                          peersRef.current[index].userIdentity = payload.userIdentity;
+                          p.peer.signal(payload.signal); // accepting the returned signal
+                          return true;
+                        }
+                        return false;
+                      }
+                    )
+                    // this completes the handshake
+                    setPeers([...peersRef.current]);
+                  });
+        
+                  socketRef.current.on("user left", payload => {
+                    const userId = payload.id;
+                    const alias = payload.alias;
+                    const peerObj = peersRef.current.find((p) => p.peerID === userId);
+                    if (peerObj) {
+                      // remove all the connections and event handlers associated with this peer
+                      peerObj.peer.destroy();
+                    }
+                    const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
+        
+                    // update peersRef
+                    peersRef.current = peers;
+        
+                    alert(`${alias} left the meeting.`)
+                    // also update the state to remove the left user's video from screen
+                    setPeers(peers);
+                  });
+                })
+                .catch((err) => console.log(err));
+            }, 1000);
+          }
+        }
+      }
+  }, [isLoading]);
   function createPeer(partnerId, myStream) {
     // If I am joining the room, I am the initiator
     const peer = new Peer({
@@ -151,6 +172,7 @@ const Room = (props) => {
     peer.on("signal", (signal) => {
       socketRef.current.emit("offer", {
         userToSignal: partnerId,
+        userIdentity: "name" in user ? user.name : user.email,
         callerID: socketRef.current.id,
         signal,
       });
@@ -185,7 +207,7 @@ const Room = (props) => {
     // so the below event is fired only when our peer accepts the incomingSignal
     // i.e peer.signal(incomingSignal) will fire the below function
     peer.on("signal", (signal) => {
-      socketRef.current.emit("answer", { signal, callerID });
+      socketRef.current.emit("answer", { signal, callerID, userIdentity: "name" in user ? user.name : user.email });
     });
 
     peer.signal(incomingSignal);
@@ -248,7 +270,7 @@ const Room = (props) => {
     // stop all tracks - audio and video
     userStream.current.getTracks().forEach((track) => track.stop());
     socketRef.current.disconnect();
-    props.history.push("/");
+    props.history.push("/videochat");
   };
 
   const muteVideo = () => {
@@ -267,6 +289,7 @@ const Room = (props) => {
     setAudioMuted((prevStatus) => !prevStatus);
   };
 
+  if (!props.location.state) return <div id="room"></div>
   return (
     <div id="room">
       <div id="grid-root">
@@ -310,7 +333,7 @@ const Room = (props) => {
                   user={peerObj.peerID}
                 />
                 <GridListTileBar
-                  title={peerObj.peerID}
+                  title={peerObj.userIdentity}
                   titlePosition="top"
                   actionPosition="right"
                 />
@@ -320,24 +343,28 @@ const Room = (props) => {
         </GridList>
       </div>
       <nav id="video-controls">
-        <h3 style={{ position: "absolute", left: (width / 100) * 2 }}>
+        <h3 style={{ position: "absolute", left: `${width < 600 ? 7 : 20}px`, fontSize: "auto" }}>
           {new Date().toLocaleString("en-US", {
             hour12: true,
             hour: "numeric",
             minute: "numeric",
-            weekday: "long",
           })}
         </h3>
-        <div style={{ position: "absolute", left: (width / 100) * 41 }}>
+        <div style={{ position: "absolute", left: `${width < 770 ? width * 30 / 100 : width * 41 / 100}px` }}>
           {!screenShared && (
             <MyToolTip
-              title={videoMuted ? "Turn on Camera" : "Turn off Camera"}
+              title={userStream.current ? (videoMuted ? "Turn on Camera" : "Turn off Camera") : "Loading..."}
             >
               <IconButton
-                onClick={muteVideo}
+                onClick={() => {
+                  // if video stream exists
+                  if (userStream.current){
+                    muteVideo();
+                  }
+                }}
                 style={{
                   backgroundColor: videoMuted ? "#eb3f21" : "#404239",
-                  margin: (width / 1000) * 5,
+                  margin: `${width < 600 ? 2 : 4}px`,
                 }}
               >
                 {videoMuted ? (
@@ -360,13 +387,18 @@ const Room = (props) => {
           )}
 
           <MyToolTip
-            title={audioMuted ? "Turn on Microphone" : "Turn off Microphone"}
+            title={userStream.current ? (audioMuted ? "Turn on Microphone" : "Turn off Microphone"): "Loading..."}
           >
             <IconButton
-              onClick={muteAudio}
+              onClick={() => {
+                // if audio stream exists
+                if (userStream.current){
+                  muteAudio();
+                }
+              }}
               style={{
                 backgroundColor: audioMuted ? "#eb3f21" : "#404239",
-                margin: (width / 1000) * 5,
+                margin: `${width < 600 ? 2 : 4}px`
               }}
             >
               {audioMuted ? (
@@ -381,15 +413,18 @@ const Room = (props) => {
             </IconButton>
           </MyToolTip>
 
-          <MyToolTip title={screenShared ? "Stop Presenting" : "Present Now"}>
+          <MyToolTip title={userStream.current ? (screenShared ? "Stop Presenting" : "Present Now") : "Loading..."}>
             <IconButton
               onClick={() => {
-                if (screenShared) stopShareScreen();
-                else shareScreen();
+                // wait for stream to load first
+                if (userStream.current){
+                  if (screenShared) stopShareScreen();
+                  else shareScreen();
+                }
               }}
               style={{
                 backgroundColor: screenShared ? "#8eb2f5" : "#404239",
-                margin: (width / 1000) * 5,
+                margin: `${width < 600 ? 2 : 4}px`
               }}
             >
               {screenShared ? (
@@ -407,7 +442,7 @@ const Room = (props) => {
           <MyToolTip title="Leave Call">
             <IconButton
               onClick={endCall}
-              style={{ backgroundColor: "#eb3f21", margin: (width / 1000) * 5 }}
+              style={{ backgroundColor: "#eb3f21", margin: `${width < 600 ? 2 : 4}px` }}
             >
               <span className="material-icons" style={{ color: "white" }}>
                 call_end
@@ -416,7 +451,19 @@ const Room = (props) => {
           </MyToolTip>
         </div>
         <h5 style={{ position: "absolute", right: (width / 100) * 3 }}>
-          {props.match.params.roomID}
+        <MyToolTip title="Copy meeting Room">
+            <IconButton
+              onClick={() => {
+                navigator.clipboard.writeText(roomID);
+                alert("Meeting Room copied to clipboard. Paste it in the videochat home page to join the call.")
+              }}
+              style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
+            >
+              <span className="material-icons" style={{ color: "white" }}>
+                content_copy
+              </span>
+            </IconButton>
+          </MyToolTip>
         </h5>
       </nav>
     </div>

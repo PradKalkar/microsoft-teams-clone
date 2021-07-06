@@ -3,7 +3,7 @@ import { Tooltip, Zoom } from "@material-ui/core";
 
 const useStyles = makeStyles(() => ({
   customSize: {
-    fontSize: '12px'
+    fontSize: '18px'
   }
 }));
 
