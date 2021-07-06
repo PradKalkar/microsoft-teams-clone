@@ -146,7 +146,7 @@ const VideoChatHome = (props) => {
                         icon={faKeyboard}
                       />
                       <input
-                        placeholder="Enter a code or link"
+                        placeholder="Enter meeting code"
                         onChange={handleInputChange}
                       />
                     </div>

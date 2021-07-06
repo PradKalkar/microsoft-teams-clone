@@ -19,40 +19,41 @@ const HomePage = (props) => {
   const chatHandler = () => {};
 
   return (
-    <>
-      {isLoading ? (
+      isLoading ? (
         <center style={{marginTop: "5px"}}>
           <CircularProgress color="secondary" />
         </center>
       ) :
-      (!isAuthenticated ? (
-        <nav id="homepage-nav">
-          <button class="btn-roxo" onClick={() => loginWithRedirect()}>
-            Log In
-            <span
-              class="material-icons-outlined"
-              style={{ color: "white", fontSize: "30px", margin: "5px" }}
-            >
-              login
-            </span>
-          </button>
-        </nav>
-      ) : (
-        <nav id="homepage-nav">
-          <button class="btn-roxo" onClick={() => logout()}>
-            Log Out
-            <span
-              class="material-icons-outlined"
-              style={{ color: "white", fontSize: "30px", margin: "5px" }}
-            >
-              logout
-            </span>
-          </button>
-          <h3 style={{ fontSize: "30px", float: "right", paddingTop: "10px" }}>
-            Hi, {"name" in user ? user.name : user.email}!
-          </h3>
-        </nav>
-      ))
+      (
+        <>
+        {!isAuthenticated ? (
+          <nav id="homepage-nav">
+            <button class="btn-roxo" onClick={() => loginWithRedirect()}>
+              Log In
+              <span
+                class="material-icons-outlined"
+                style={{ color: "white", fontSize: "30px", margin: "5px" }}
+              >
+                login
+              </span>
+            </button>
+          </nav>
+        ) : (
+          <nav id="homepage-nav">
+            <button class="btn-roxo" onClick={() => logout()}>
+              Log Out
+              <span
+                class="material-icons-outlined"
+                style={{ color: "white", fontSize: "30px", margin: "5px" }}
+              >
+                logout
+              </span>
+            </button>
+            <h3 style={{ fontSize: "30px", float: "right", paddingTop: "10px" }}>
+              Hi, {"name" in user ? user.name : user.email}!
+            </h3>
+          </nav>
+        )
       }
       <section id="topo">
         <div id="logo">
@@ -182,7 +183,8 @@ const HomePage = (props) => {
         </div>
       </section>
     </>
-  );
+    )
+  )
 };
 
 export default HomePage;
