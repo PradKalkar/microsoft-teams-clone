@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Peer from "simple-peer";
 import {
   GridList,
@@ -19,7 +20,9 @@ const Room = (props) => {
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
   const permitAudio = new Audio("/sounds/permission.mp3");
-
+  const waitingAudio = new Audio("/sounds/waiting.mp3");
+  const errorAudio = new Audio("/sounds/error.mp3");
+  
   const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [popUp, setPopUp] = useState('');
@@ -29,6 +32,7 @@ const Room = (props) => {
   const [audioMuted, setAudioMuted] = useState(false);
   const [screenShared, setScreenShared] = useState(false);
 
+  const waitingPlaying = useRef();
   const joiningSocket = useRef();
   const socketRef = useRef();
   const userVideo = useRef();
@@ -150,14 +154,22 @@ const Room = (props) => {
           }
           else{
             // play the join in sound
-            setLoading(true);
+            waitingPlaying.current = false;
             socketRef.current = io.connect("/"); // connecting with the socket.io server
+
+            // if the user is not admin, ask for permission to join the call
             if (!props.location.state.admin){
+              const timer = setInterval(() => {
+                waitingAudio.play();
+              }, 100);
+              setLoading(true);
+              setPopUp("Waiting")
               const userAlias = ("name" in user && user.name.length > 0) ? user.name : user.email;
 
               socketRef.current.emit("permission", {user: userAlias, room: roomID});
 
               socketRef.current.on("allowed", chatId => {
+                clearInterval(timer);
                 // allowed in the call
                 // add this user to the chat
                 addUser(user.email, chatId)
@@ -173,9 +185,14 @@ const Room = (props) => {
               })
 
               socketRef.current.on("denied", () => {
-                setLoading(false);
-                setPopUp("denied to join");
-                // redirect the user to videochat home page
+                clearInterval(timer);
+
+                setTimeout(() => {
+                  errorAudio.play();
+                  setLoading(false);
+                  setPopUp("denied to join");
+                  // redirect the user to videochat home page
+                }, 1000);
               }) 
             }
             else{
@@ -186,6 +203,7 @@ const Room = (props) => {
         }
       }
   }, [isLoading]);
+
   function createPeer(partnerId, myStream) {
     // If I am joining the room, I am the initiator
     const peer = new Peer({
@@ -406,8 +424,8 @@ const Room = (props) => {
       {
         popUp[0] === '1' && (
             <AlertDialog
-              title="Someone is requesting to join the call!"
-              message={popUp.substr(2)}
+              title="Join request!"
+              message={`${popUp.substr(2)} is requesting to join the call.`}
               showLeft={true}
               showRight={true}
               auto={false}
@@ -455,7 +473,7 @@ const Room = (props) => {
               showLeft={false}
               showRight={false}
               auto={true}
-              time={3000}
+              time={6000}
               onClose={() => {
                 setPopUp('');
               }}
@@ -473,13 +491,26 @@ const Room = (props) => {
               showLeft={false}
               showRight={false}
               auto={true}
-              time={3000}
+              time={7000}
               onClose={() => {
                 setPopUp('');
               }}
               onRight={() => {
                 setPopUp('');
               }}
+          />
+        )
+      }
+      {
+        loading && popUp === "Waiting" && (
+          <AlertDialog
+              title={<CircularProgress color="secondary"/>}
+              message="Waiting for the meeting admin to let you in."
+              showLeft={false}
+              showRight={false}
+              auto={false}
+              keepOpen={true}
+              onClose={() => {}}
           />
         )
       }

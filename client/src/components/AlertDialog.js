@@ -24,17 +24,32 @@ export default function AlertDialog(props) {
   }, []);
 
   const handleClose = () => {
-    setOpen(false);
+    if (props.keepOpen){
+      // dont close the dialog
+    }
+    else{
+      setOpen(false);
+    }
     props.onClose();
   }
 
   const handleLeftButton = () => {
-    setOpen(false);
+    if (props.keepOpen){
+      // dont close the dialog
+    }
+    else{
+      setOpen(false);
+    }
     props.onLeft();
   }
 
   const handleRightButton = () => {
-    setOpen(false);
+    if (props.keepOpen){
+      // dont close the dialog
+    }
+    else{
+      setOpen(false);
+    }
     props.onRight();
   };
 
