@@ -1,3 +1,4 @@
+require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const http = require("http");
@@ -6,31 +7,34 @@ const server = http.createServer(app);
 const socket = require("socket.io");
 const io = socket(server);
 
+const axios = require('axios');
+const bodyParser = require("body-parser");
+const { resolveSoa } = require("dns");
+app.use(bodyParser.json());
+
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, './client/build')));
 
 const rooms = {}; // rooms[i] - users in room i
 const socketToRoom = {}; // socketToRoom[s] - room in which s resides
 const socketToAlias = {}; // socketToAlias[s] - username of the socket s
+const chats = {}; // map from roomId to chatId
+const adminUsername = {}; // map from chatId to chatAdmins username
+const adminSocket = {}; // map from chatId to chatAdmins socket
 
 io.on('connection', socket => {
     // check for the room
-    socket.on("check", roomID => {
-        if (rooms[roomID] && rooms[roomID].length !== 0){
-            socket.emit("yes");
-        }
-        else{
-            socket.emit("no");
-        }
-    })
 
     socket.on("join room", payload => {
         const roomID = payload.room;
         const useralias = payload.userIdentity;
         if (rooms[roomID]) {
+            // this socket is not admin
             rooms[roomID].push(socket.id);
         } else {
+            // this socket is admin
             rooms[roomID] = [socket.id];
+            adminSocket[roomID] = socket.id;
         }
         socketToRoom[socket.id] = roomID;
         socketToAlias[socket.id] = useralias;
@@ -38,6 +42,22 @@ io.on('connection', socket => {
 
         socket.emit("all other users", usersInThisRoom); // emiting all users except the one who is joining
     });
+
+    socket.on("permission", payload => {
+      const userAlias = payload.user;
+      const roomId = payload.room;
+      io.to(adminSocket[roomId]).emit("permit?", {id: socket.id, userAlias: userAlias});
+    });
+
+    socket.on("permit status", payload => {
+      if (payload.allowed){
+        // allow the user to enter into the meeting
+        io.to(payload.id).emit("allowed", chats[socketToRoom[socket.id]]);
+      }
+      else{
+        io.to(payload.id).emit("denied");
+      }
+    })
 
     socket.on("offer", payload => {
         io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, userIdentity: payload.userIdentity });
@@ -56,7 +76,17 @@ io.on('connection', socket => {
             // remove this user(socket) from the room
             room = room.filter(id => id !== socket.id);
             rooms[roomID] = room;
-            if (rooms[roomID].length === 0) delete rooms[roomID];
+            if (rooms[roomID].length === 0) {
+              delete rooms[roomID];
+              delete adminUsername[chats[roomID]];
+              delete adminSocket[roomID];
+              delete chats[roomID];
+            }
+            else{
+              // check if this user is admin
+              // change the room admin to some random person
+              adminSocket[roomID] = rooms[roomID][0];
+            }
         }
 
         // remove this socket id from socketToRoom and socketToAlias collection
@@ -73,4 +103,186 @@ app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, './client/build', 'index.html'));
 });
 
-server.listen(process.env.PORT || 8000);
+// ----------------------------- chat related stuff
+
+app.post("/create_user", async (req, res) => {
+    try {
+      let data = req.body;
+      data["secret"] = process.env.USER_SECRET;
+      const config = {
+        method: "put", // get or create user
+        url: "https://api.chatengine.io/users/",
+        headers: {
+          "PRIVATE-KEY": process.env.PROJECT_PRIVATE_KEY,
+        },
+        data: data,
+      };
+      const response = await axios(config); // send request using axios
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+  
+  app.post("/create_chat", async (req, res) => {
+    try {
+      let data = req.body;
+      console.log(data);
+      const config = {
+        method: "post", // get or create user
+        url: "https://api.chatengine.io/chats/",
+        headers: {
+          "Project-ID": process.env.PROJECT_ID,
+          "User-Name": data.admin_username,
+          "User-Secret": process.env.USER_SECRET,
+        },
+        data: data,
+      };
+      const response = await axios(config); // send request using axios
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+
+  app.post("/delete_chat", async (req, res) => {
+    try {
+      const data = req.body;
+      console.log(data);
+      const config = {
+        method: "delete", // get or create user
+        url: `https://api.chatengine.io/chats/${data.chat_id}`,
+        headers: {
+          "Project-ID": process.env.PROJECT_ID,
+          "User-Name": data.admin_username,
+          "User-Secret": process.env.USER_SECRET,
+        }
+      };
+      const response = await axios(config); // send request using axios
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+
+  app.post("/add_user", async (req, res) => {
+    try {
+      const data = req.body;
+      const config = {
+        method: "POST",
+        url: `https://api.chatengine.io/chats/${data.chatId}/people/`, // dummy chat
+        headers: {
+          "Project-ID": process.env.PROJECT_ID,
+          "User-Name": adminUsername[data.chatId], // chat admin
+          "User-Secret": process.env.USER_SECRET,
+        },
+        data: {
+          username: data.username
+        },
+      };
+      const response = await axios(config);
+      console.log(response.data);
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+  
+  app.post("/get_chat_msgs", async (req, res) => {
+    try {
+      const data = req.body;
+      const config = {
+        method: "get",
+        url: "https://api.chatengine.io/chats/38128/messages/", // dummy chat
+        headers: {
+          "Project-ID": process.env.PROJECT_ID,
+          "User-Name": data.username,
+          "User-Secret": process.env.USER_SECRET,
+        },
+      };
+      const response = await axios(config);
+      console.log(response.data);
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+  
+  app.post("/post_chat_msg", async (req, res) => {
+    try {
+      const data = req.body;
+      const config = {
+        method: "post",
+        url: "https://api.chatengine.io/chats/38128/messages/",
+        headers: {
+          "Project-ID": process.env.PROJECT_ID,
+          "User-Name": data.username,
+          "User-Secret": process.env.USER_SECRET,
+        },
+        data: data.data,
+      };
+      response = await axios(config);
+      console.log(response.data);
+      res.send(response.data);
+    } catch (error) {
+      console.log(error);
+      res.send(error);
+    }
+  });
+
+  // check new meeting creation
+app.post("/new_meeting", (req, res) => {
+  const data = req.body;
+  const roomId = data.room;
+  const chatId = data.chat;
+
+  if (rooms[roomId]){
+    // new meeting not possible to create with this roomId
+    res.send("failure");
+  }
+  else{
+    // new meeting success
+    chats[roomId] = chatId;
+    adminUsername[chatId] = data.admin;
+    res.send("success");
+  }
+})
+
+  // check existing meeting creation
+  // if success, send a permission request to admin of the meeting
+  app.post("/existing_meeting", (req, res) => {
+    const data = req.body;
+    const roomId = data.room;
+  
+    if (rooms[roomId]){
+      // possible to join this room
+      const data = {
+        status: "success",
+      }
+      res.send(data);
+    }
+    else{
+      // not possible to join this meet
+      const data = {
+        status: "failure"
+      }
+      res.send(data);
+    }
+  })
+
+app.post("/get_secret", (_, res) => {
+  const response = {
+    secret: process.env.USER_SECRET,
+    project: process.env.PROJECT_ID 
+  }
+  res.send(response);
+})
+
+server.listen(process.env.PORT || 8000, () => {
+    console.log(process.env.PROJECT_ID);
+});

@@ -42,7 +42,7 @@
               }
             }
             .input-block {
-              margin-left: 25px;
+              margin-left: 5px;
               display: flex;
               flex: 1;
               .input-section {
@@ -63,6 +63,10 @@
                   width: 100%;
                   box-sizing: border-box;
                   outline: none;
+                  &:hover{
+                    border-color: blue;
+                    border-width: 3px;
+                  }
                 }
               }
             }

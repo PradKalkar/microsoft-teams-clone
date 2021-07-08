@@ -12,18 +12,24 @@ import MyToolTip from "./MyToolTip";
 import useWindowDimensions from "../hooks/useWindowDimensions";
 import PartnerVideo from "./PartnerVideo";
 import { useAuth0 } from "@auth0/auth0-react";
+import AlertDialog from "../components/AlertDialog";
+import { addUser } from '../components/Apis';
 
 const Room = (props) => {
-  const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
+  const permitAudio = new Audio("/sounds/permission.mp3");
 
-  // dynamic width of webpage
-  const { width } = useWindowDimensions();
+  const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
+  const [loading, setLoading] = useState(false);
+  const [popUp, setPopUp] = useState('');
+  const { width } = useWindowDimensions(); // dynamic width of webpage 
   const [peers, setPeers] = useState([]);
   const [videoMuted, setVideoMuted] = useState(false);
   const [audioMuted, setAudioMuted] = useState(false);
   const [screenShared, setScreenShared] = useState(false);
+
+  const joiningSocket = useRef();
   const socketRef = useRef();
   const userVideo = useRef();
   const userStream = useRef();
@@ -42,105 +48,140 @@ const Room = (props) => {
       window.location.reload();
   };
 
+  const joinPersonIn = () => {
+    joinInAudio.play();
+    setTimeout(() => {
+      navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((myStream) => {
+        userStream.current = myStream;
+        videoTrack.current = userStream.current.getTracks()[1];
+        audioTrack.current = userStream.current.getTracks()[0];
+        userVideo.current.srcObject = myStream;
+
+        socketRef.current.on("permit?", payload => {
+          permitAudio.play();
+          const userAlias = payload.userAlias;
+          const socketid = payload.id;
+          joiningSocket.current = socketid;
+          setPopUp(`1 ${userAlias}`);
+          // identify popup using popup[0] = 1
+        })
+
+        socketRef.current.emit("join room", {room: roomID, userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email});
+
+        // this is received by the user who just joined
+        // we get all the users present in the room
+        socketRef.current.on("all other users", (partners) => {
+          // create a peer for us corresponding to connection to every other user in the room
+          partners.forEach((partnerId) => {
+            const peer = createPeer(partnerId, myStream);
+            peersRef.current.push({
+              peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
+              userIdentity: "Loading...",
+              peer,
+            });
+          });
+          setPeers([...peersRef.current]); // update the state to render their streams
+        });
+
+        // this event is received by a user who is already present within the room
+        // so we need to add peer corresponding to the new comer
+        // we are also receiving peer signal(offer) from new comer
+        socketRef.current.on("user joined", (payload) => {
+          joinInAudio.play();
+          const peer = addPeer(payload.signal, payload.callerID, myStream);
+          peersRef.current.push({
+            peerID: payload.callerID,
+            userIdentity: payload.userIdentity,
+            peer, // this is equivalent to peer: peer
+          });
+
+          // add new peerobj to peers state
+          setPeers([...peersRef.current]);
+          setPopUp(`3 ${payload.userIdentity}`);
+        });
+
+        // now the peer who has joined just now is receiving the retrned signal
+        // from the peers to whom it had sent signal to
+        socketRef.current.on("answer", (payload) => {
+          // finding the corresponding peer which is item.peer
+          peersRef.current.find(
+            (p, index) => {
+              if (p.peerID === payload.id){
+                peersRef.current[index].userIdentity = payload.userIdentity;
+                p.peer.signal(payload.signal); // accepting the returned signal
+                return true;
+              }
+              return false;
+            }
+          )
+          // this completes the handshake
+          setPeers([...peersRef.current]);
+        });
+
+        socketRef.current.on("user left", payload => {
+          const userId = payload.id;
+          const alias = payload.alias;
+          const peerObj = peersRef.current.find((p) => p.peerID === userId);
+          if (peerObj) {
+            peerObj.peer.destroy(); // remove all the connections and event handlers associated with this peer
+          }
+          const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
+          peersRef.current = peers; // update peersRef
+          setPopUp(`2 ${alias}`)
+          setPeers(peers); // also update the state to remove the left user's video from screen
+        });
+      })
+      .catch(() => {
+        setPopUp("connection timed out");
+      });
+    }, 2000);
+  }
+
   useEffect(() => {
       if (!isLoading){
         if (!isAuthenticated){
-          alert("You are not logged in and will be redirected to the home page after login. Please log in and join again.")
-          loginWithRedirect({
-            redirectUri: window.location.origin
-          })
+          setPopUp("auth");
         }
         else{
           if (!props.location.state){
-            alert("You cannot visit this page directly. Please head over to the videochat's home page to start a new meeting or join an existing one. After you click ok, you will be redirected to the home page.")
-            window.location.href = window.location.origin;
+            setPopUp("Forbidden");
           }
           else{
-                // play the join in sound
-            joinInAudio.play();
-        
-            setTimeout(() => {
-              socketRef.current = io.connect("/"); // connecting with the socket.io server
-              navigator.mediaDevices
-                .getUserMedia({ video: true, audio: true })
-                .then((myStream) => {
-                  // show this alert to every user who joins the chat
-                  userStream.current = myStream;
-                  videoTrack.current = userStream.current.getTracks()[1];
-                  audioTrack.current = userStream.current.getTracks()[0];
-                  userVideo.current.srcObject = myStream;
-        
-                  socketRef.current.emit("join room", {room: roomID, userIdentity: "name" in user ? user.name : user.email});
-        
-                  // this is received by the user who just joined
-                  // we get all the users present in the room
-                  socketRef.current.on("all other users", (partners) => {
-                    // create a peer for us corresponding to connection to every other user in the room
-                    partners.forEach((partnerId) => {
-                      const peer = createPeer(partnerId, myStream);
-                      peersRef.current.push({
-                        peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
-                        userIdentity: "Loading...",
-                        peer,
-                      });
-                    });
-                    setPeers([...peersRef.current]); // update the state to render their streams
-                  });
-        
-                  // this event is received by a user who is already present within the room
-                  // so we need to add peer corresponding to the new comer
-                  // we are also receiving peer signal(offer) from new comer
-                  socketRef.current.on("user joined", (payload) => {
-                    const peer = addPeer(payload.signal, payload.callerID, myStream);
-                    peersRef.current.push({
-                      peerID: payload.callerID,
-                      userIdentity: payload.userIdentity,
-                      peer, // this is equivalent to peer: peer
-                    });
-        
-                    // add new peerobj to peers state
-                    setPeers([...peersRef.current]);
-                    alert(`${payload.userIdentity} joined the meeting.`)
-                  });
-        
-                  // now the peer who has joined just now is receiving the retrned signal
-                  // from the peers to whom it had sent signal to
-                  socketRef.current.on("answer", (payload) => {
-                    // finding the corresponding peer which is item.peer
-                    peersRef.current.find(
-                      (p, index) => {
-                        if (p.peerID === payload.id){
-                          peersRef.current[index].userIdentity = payload.userIdentity;
-                          p.peer.signal(payload.signal); // accepting the returned signal
-                          return true;
-                        }
-                        return false;
-                      }
-                    )
-                    // this completes the handshake
-                    setPeers([...peersRef.current]);
-                  });
-        
-                  socketRef.current.on("user left", payload => {
-                    const userId = payload.id;
-                    const alias = payload.alias;
-                    const peerObj = peersRef.current.find((p) => p.peerID === userId);
-                    if (peerObj) {
-                      // remove all the connections and event handlers associated with this peer
-                      peerObj.peer.destroy();
-                    }
-                    const peers = peersRef.current.filter((p) => p.peerID !== userId); // removing this userId from peers
-        
-                    // update peersRef
-                    peersRef.current = peers;
-        
-                    alert(`${alias} left the meeting.`)
-                    // also update the state to remove the left user's video from screen
-                    setPeers(peers);
-                  });
+            // play the join in sound
+            setLoading(true);
+            socketRef.current = io.connect("/"); // connecting with the socket.io server
+            if (!props.location.state.admin){
+              const userAlias = ("name" in user && user.name.length > 0) ? user.name : user.email;
+
+              socketRef.current.emit("permission", {user: userAlias, room: roomID});
+
+              socketRef.current.on("allowed", chatId => {
+                // allowed in the call
+                // add this user to the chat
+                addUser(user.email, chatId)
+                .then(() => {
+                  setLoading(false);
+                  joinPersonIn();
                 })
-                .catch((err) => console.log(err));
-            }, 1000);
+                .catch(() => {
+                  setLoading(false);
+                  // redirect the user to videochat home page
+                  setPopUp("connection timed out");
+                });
+              })
+
+              socketRef.current.on("denied", () => {
+                setLoading(false);
+                setPopUp("denied to join");
+                // redirect the user to videochat home page
+              }) 
+            }
+            else{
+              setLoading(false);
+              joinPersonIn();
+            }
           }
         }
       }
@@ -172,7 +213,7 @@ const Room = (props) => {
     peer.on("signal", (signal) => {
       socketRef.current.emit("offer", {
         userToSignal: partnerId,
-        userIdentity: "name" in user ? user.name : user.email,
+        userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email,
         callerID: socketRef.current.id,
         signal,
       });
@@ -207,7 +248,7 @@ const Room = (props) => {
     // so the below event is fired only when our peer accepts the incomingSignal
     // i.e peer.signal(incomingSignal) will fire the below function
     peer.on("signal", (signal) => {
-      socketRef.current.emit("answer", { signal, callerID, userIdentity: "name" in user ? user.name : user.email });
+      socketRef.current.emit("answer", { signal, callerID, userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email });
     });
 
     peer.signal(incomingSignal);
@@ -268,7 +309,9 @@ const Room = (props) => {
     hangUpAudio.play();
 
     // stop all tracks - audio and video
-    userStream.current.getTracks().forEach((track) => track.stop());
+    if (userStream.current){
+      userStream.current.getTracks().forEach((track) => track.stop());
+    }
     socketRef.current.disconnect();
     props.history.push("/videochat");
   };
@@ -289,9 +332,157 @@ const Room = (props) => {
     setAudioMuted((prevStatus) => !prevStatus);
   };
 
+  if (popUp === "connection timed out"){
+    return (
+      <AlertDialog
+        title="ERR Connection Timed Out!"
+        message="Please check your internet connection and try again."
+        showLeft={false}
+        showRight={true}
+        btnTextRight="OK"
+        auto={false}
+        onClose={() => {
+          setPopUp('');
+          window.location.href = window.location.origin + "/videochat";
+        }}
+        onRight={() => {
+          setPopUp('');
+          window.location.href = window.location.origin + "/videochat";
+        }}
+      />
+    )
+  }
+
+  if (popUp === "auth"){
+    return (
+      <AlertDialog
+        title="Unauthorised request!"
+        message="You will be redirected to the login page on closing this popup. Please log in to continue."
+        showLeft={false}
+        showRight={true}
+        auto={true}
+        time={5000}
+        btnTextRight="Ok"
+        onClose={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
+        onRight={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
+      />
+    )
+  }
+
+  if (popUp === "Forbidden"){
+    return (
+      <AlertDialog
+        title="Forbidden!"
+        message="You cannot visit this page directly. Please use the application's home page to start a new meeting or join an existing one."
+        showLeft={false}
+        showRight={false}
+        auto={true}
+        time={5000}
+        onClose={() => window.location.href = window.location.origin + "/videochat"}
+      />
+    )
+  }
+
+  if (popUp === "denied to join"){
+    // popup closes automatically after 4 second
+    return (
+      <AlertDialog
+        title="Permission denied!"
+        message="You were denied to join the call by the meeting admin. You will shortly be redirected to videochat's home page."
+        showLeft={false}
+        showRight={false}
+        auto={true}
+        time={4000}
+        onClose={() => {
+          window.location.href = window.location.origin + "/videochat";
+        }}
+      />
+    )
+  }
+
   if (!props.location.state) return <div id="room"></div>
   return (
     <div id="room">
+      {
+        popUp[0] === '1' && (
+            <AlertDialog
+              title="Someone is requesting to join the call!"
+              message={popUp.substr(2)}
+              showLeft={true}
+              showRight={true}
+              auto={false}
+              btnTextLeft={"Deny Entry"}
+              btnTextRight={"Admit"}
+              // onClose equivalent to deny
+              onClose={() => {
+                socketRef.current.emit("permit status", {allowed: false, id: joiningSocket.current});
+                setPopUp('');
+              }}
+              onLeft={() => {
+                socketRef.current.emit("permit status", {allowed: false, id: joiningSocket.current});
+                setPopUp('');
+              }}
+              onRight={() => {
+                socketRef.current.emit("permit status", {allowed: true, id: joiningSocket.current});
+                setPopUp('');
+              }}
+            />
+        )
+      }
+      {
+        popUp === "meet link copied" && (
+          <AlertDialog
+              title="Meeting Code copied to Clipboard."
+              message="Share with those whom you would like to join here and ask them to enter the code on the videochat's home page."
+              showLeft={false}
+              showRight={true}
+              auto={false}
+              btnTextRight={"Ok"}
+              onClose={() => {
+                setPopUp('');
+              }}
+              onRight={() => {
+                setPopUp('');
+              }}
+            />
+        )
+      }
+      {
+        popUp[0] === '2' && (
+          <AlertDialog
+              title="User left"
+              message={`${popUp.substr(2)} left the meeting.`}
+              showLeft={false}
+              showRight={false}
+              auto={true}
+              time={3000}
+              onClose={() => {
+                setPopUp('');
+              }}
+              onRight={() => {
+                setPopUp('');
+              }}
+          />
+        )
+      }
+      {
+        popUp[0] === '3' && (
+          <AlertDialog
+              title="User joined"
+              message={`${popUp.substr(2)} joined the meeting.`}
+              showLeft={false}
+              showRight={false}
+              auto={true}
+              time={3000}
+              onClose={() => {
+                setPopUp('');
+              }}
+              onRight={() => {
+                setPopUp('');
+              }}
+          />
+        )
+      }
       <div id="grid-root">
         <GridList cellHeight="90vh" id="grid-list" cols={2} spacing={20}>
           <GridListTile
@@ -439,7 +630,7 @@ const Room = (props) => {
             </IconButton>
           </MyToolTip>
 
-          <MyToolTip title="Leave Call">
+          <MyToolTip title="Hang Up">
             <IconButton
               onClick={endCall}
               style={{ backgroundColor: "#eb3f21", margin: `${width < 600 ? 2 : 4}px` }}
@@ -455,7 +646,7 @@ const Room = (props) => {
             <IconButton
               onClick={() => {
                 navigator.clipboard.writeText(roomID);
-                alert("Meeting Room copied to clipboard. Paste it in the videochat home page to join the call.")
+                setPopUp("meet link copied");
               }}
               style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
             >

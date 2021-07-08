@@ -4,23 +4,22 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faKeyboard } from "@fortawesome/free-solid-svg-icons";
 import { v1 as uuid } from "uuid";
-import io from "socket.io-client";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import { createChat, deleteChat } from '../components/Apis';
+import AlertDialog from "../components/AlertDialog";
+import axios from "axios";
 import "./VideoChatHome.scss";
 
-
 const VideoChatHome = (props) => {
+  const [popup, setPopup] = useState('');
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, loginWithRedirect, isLoading, logout, user } =
     useAuth0();
 
   useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      alert("You cannot visit this page without logging in. Please log in to continue.")
-      loginWithRedirect({
-        redirectUri: window.location.origin,
-      });
+    if (!isLoading && !isAuthenticated) {
+      setPopup("auth");
     }
   }, [isLoading]);
 
@@ -28,49 +27,156 @@ const VideoChatHome = (props) => {
     setLink(event.target.value);
   };
 
-  const startNewMeeting = () => {
+  const startNewMeeting = async () => {
+    setLoading(true);
     const roomId = uuid();
-    // check if someone is not already present
-    const socket = io.connect("/");
-    socket.emit("check", roomId);
-    setLoading(true);
-    socket.on("no", () => {
+    const chatId = await createChat(roomId, user.email);
+    if (!chatId){
+      setPopup("connection timed out");
       setLoading(false);
-      console.log("response received", roomId);
-      setLink("");
-      props.history.push({
-        pathname: `/videochat/room/${roomId}`,
-        state: {
-          authorised: true
-        }
-      });
-    })
-  };
+    }
+    else{
+      // chat created successfully
+      try {
+        const data = {
+          room: roomId,
+          chat: chatId,
+          admin: user.email
+        };
+        const config = {
+          method: "post",
+          url: "/new_meeting",
+          data: data
+        };
 
-  const handleExistingMeetJoin = () => {
-    const roomId = link;
-    // check if someone is already present
-    const socket = io.connect("/");
-    socket.emit("check", roomId);
-    setLoading(true);
-    socket.on("yes", () => {
-      setLoading(false);
-      console.log("response received", roomId);
-      setLink("");
-      props.history.push({
-        pathname: `/videochat/room/${roomId}`,
-        state: {
-          authorised: true
+        const response = await axios(config);
+        if (response.data === "success"){
+          setLoading(false);
+          props.history.push({
+            pathname: `/videochat/room/${roomId}`,
+            state: {
+              authorised: true, // we are entering the videocall securely through app's interface
+              admin: true
+            }
+          });
         }
-      });
-    })
-    socket.on("no", () => {
+        else{
+          setPopup("meet creation failed");
+          await deleteChat(user.email, chatId);
+          setLoading(false);
+        }
+      }
+      catch (error) {
+        setPopup("connection timed out");
+        await deleteChat(user.email, chatId);
+        setLoading(false);
+      }
+    }
+  }
+
+  const handleExistingMeetJoin = async () => {
+    setLoading(true);
+    const roomId = link;
+
+    // check if the meeting link is valid i.e. contains atleast one user
+    try {
+      const data = {
+        room: roomId,
+      }
+      const config = {
+        method: "post",
+        url: "/existing_meeting",
+        data: data
+      }
+
+      // here if the meeting is success we get the chatid
+      const response = await axios(config);
+      if (response.data.status === "failure"){
+        setLoading(false);
+        setPopup("Meeting link invalid");
+      }
+      else{
+        // join the user in
+        // const chatId = response.data.chat;
+        // await addUser(user.email, chatId); // add the user to the meeting chat
+        setLink("");
+        setLoading(false);
+        props.history.push({
+          pathname: `/videochat/room/${roomId}`,
+          state: {
+            authorised: true,
+            admin: false
+          }
+        });
+      }
+    } catch {
       setLoading(false);
-      setLink("");
-      alert("Meeting code is invalid. Please try again.");
-      socket.disconnect();
-    })
-  };
+      setPopup("connection timed out");
+    }
+  }
+
+  if (popup === "auth") {
+    return (
+      <AlertDialog
+        title="Unauthorised request!"
+        message="You will be redirected to the login page on closing this popup. Please log in to continue."
+        showLeft={false}
+        showRight={true}
+        auto={true}
+        time={5000}
+        btnTextRight="Ok"
+        onClose={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
+        onRight={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
+      />
+    )
+  }
+
+  if (popup === "connection timed out") {
+    return (
+      <AlertDialog
+        title="ERR Connection Timed Out!"
+        message="Please check your internet connection and try again."
+        showLeft={false}
+        showRight={true}
+        auto={false}
+        btnTextRight="Ok"
+        onClose={() => setPopup('')}
+        onRight={() => setPopup('')}
+      />
+    )
+  }
+
+  if (popup === "meet creation failed") {
+    return (
+      <AlertDialog
+        title="Meet creation failed!"
+        message="There was a problem in your meeting creation. Please try again."
+        showLeft={false}
+        showRight={true}
+        auto={true}
+        time={5000}
+        btnTextRight="Ok"
+        onClose={() => setPopup('')}
+        onRight={() => setPopup('')}
+      />
+    )
+  }
+
+  if (popup === "Meeting link invalid") {
+    return (
+      <AlertDialog
+        title="Meeting code invalid!"
+        message="The meeting code you entered is invalid. Please check the code properly and try again."
+        showLeft={false}
+        showRight={true}
+        auto={true}
+        time={5000}
+        btnTextRight="Ok"
+        onClose={() => setPopup('')}
+        onRight={() => setPopup('')}
+      />
+    )
+  }
 
   return (
       (isLoading || loading || !isAuthenticated) ? (
@@ -90,7 +196,7 @@ const VideoChatHome = (props) => {
                 paddingLeft: "10px",
               }}
             >
-              Hi, {"name" in user ? user.name : user.email}!
+              Hi, {"given_name" in user && user.given_name.length > 0 ? user.given_name : ("name" in user && user.name.length > 0 ? user.name : user.email)}!
             </h3>
             <button
               className="btn"
