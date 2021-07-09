@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useReducer } from "react";
 import io from "socket.io-client";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Peer from "simple-peer";
@@ -14,9 +14,20 @@ import useWindowDimensions from "../hooks/useWindowDimensions";
 import PartnerVideo from "./PartnerVideo";
 import { useAuth0 } from "@auth0/auth0-react";
 import AlertDialog from "../components/AlertDialog";
-import { addUser } from '../components/Apis';
+import { addUser, getChatMsgs, sendChatMsg } from '../components/Apis';
+import Messenger from "../components/Messenger";
+import MessageListReducer from "../reducers/MessageListReducer";
+
+const initialState = [];
 
 const Room = (props) => {
+  const [messageList, messageListReducer] = useReducer(
+    MessageListReducer,
+    initialState
+  );
+  const [isMessenger, setIsMessenger] = useState(false);
+  // const [messageAlert, setMessageAlert] = useState({});
+
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
   const permitAudio = new Audio("/sounds/permission.mp3");
@@ -32,7 +43,6 @@ const Room = (props) => {
   const [audioMuted, setAudioMuted] = useState(false);
   const [screenShared, setScreenShared] = useState(false);
 
-  const waitingPlaying = useRef();
   const joiningSocket = useRef();
   const socketRef = useRef();
   const userVideo = useRef();
@@ -58,10 +68,16 @@ const Room = (props) => {
       navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((myStream) => {
+        setLoading(false);
         userStream.current = myStream;
         videoTrack.current = userStream.current.getTracks()[1];
         audioTrack.current = userStream.current.getTracks()[0];
         userVideo.current.srcObject = myStream;
+        const userAlias = ("given_name" in user && user.given_name.length > 0 ?
+                                  `${user.given_name} ${user.family_name}` : 
+                                  user.email);
+
+        socketRef.current.emit("join room", {room: roomID, userIdentity: userAlias, email: user.email});
 
         socketRef.current.on("permit?", payload => {
           permitAudio.play();
@@ -72,14 +88,12 @@ const Room = (props) => {
           // identify popup using popup[0] = 1
         })
 
-        socketRef.current.emit("join room", {room: roomID, userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email});
-
         // this is received by the user who just joined
         // we get all the users present in the room
         socketRef.current.on("all other users", (partners) => {
           // create a peer for us corresponding to connection to every other user in the room
           partners.forEach((partnerId) => {
-            const peer = createPeer(partnerId, myStream);
+            const peer = createPeer(partnerId, myStream, userAlias);
             peersRef.current.push({
               peerID: partnerId, // this particular peer is representing conection b/w me and partnerId
               userIdentity: "Loading...",
@@ -94,7 +108,7 @@ const Room = (props) => {
         // we are also receiving peer signal(offer) from new comer
         socketRef.current.on("user joined", (payload) => {
           joinInAudio.play();
-          const peer = addPeer(payload.signal, payload.callerID, myStream);
+          const peer = addPeer(payload.signal, payload.callerID, payload.userIdentity, myStream, userAlias);
           peersRef.current.push({
             peerID: payload.callerID,
             userIdentity: payload.userIdentity,
@@ -103,7 +117,10 @@ const Room = (props) => {
 
           // add new peerobj to peers state
           setPeers([...peersRef.current]);
-          setPopUp(`3 ${payload.userIdentity}`);
+          setTimeout(() => {
+            setPopUp(`3 ${payload.userIdentity}`);
+          }, 1000);
+          
         });
 
         // now the peer who has joined just now is receiving the retrned signal
@@ -114,6 +131,20 @@ const Room = (props) => {
             (p, index) => {
               if (p.peerID === payload.id){
                 peersRef.current[index].userIdentity = payload.userIdentity;
+
+                // receiving message from this peer
+                p.peer.on("data", (data) => {
+                  // clearTimeout(alertTimeout);
+                  messageListReducer({
+                    type: "addMessage",
+                    payload: {
+                      user: payload.userIdentity,
+                      msg: data.toString(),
+                      time: Date.now(),
+                    },
+                  });
+                });
+
                 p.peer.signal(payload.signal); // accepting the returned signal
                 return true;
               }
@@ -138,6 +169,7 @@ const Room = (props) => {
         });
       })
       .catch(() => {
+        setLoading(false);
         setPopUp("connection timed out");
       });
     }, 2000);
@@ -153,8 +185,7 @@ const Room = (props) => {
             setPopUp("Forbidden");
           }
           else{
-            // play the join in sound
-            waitingPlaying.current = false;
+            setLoading(true);
             socketRef.current = io.connect("/"); // connecting with the socket.io server
 
             // if the user is not admin, ask for permission to join the call
@@ -162,22 +193,72 @@ const Room = (props) => {
               const timer = setInterval(() => {
                 waitingAudio.play();
               }, 100);
-              setLoading(true);
               setPopUp("Waiting")
-              const userAlias = ("name" in user && user.name.length > 0) ? user.name : user.email;
+              const userAlias = ("given_name" in user && user.given_name.length > 0 ?
+                                  `${user.given_name} ${user.family_name}` : 
+                                  user.email);
 
-              socketRef.current.emit("permission", {user: userAlias, room: roomID});
+              socketRef.current.emit("permission", {user: userAlias, room: roomID, email: user.email});
+
+              socketRef.current.on("no permit required", () => {
+                // fetch the chat messages
+                getChatMsgs(roomID)
+                .then(messages => {
+                  // console.log(messages);
+                  messages.forEach(message => {
+                    const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
+                                          `${message.sender.first_name} ${message.sender.last_name}` : 
+                                          message.sender.email);
+                    const payload = {
+                      user: userIdentity,
+                      msg: message.text,
+                      time: message.created
+                    }
+                    initialState.push(payload);
+                  })
+                    
+                  waitingAudio.pause();
+                  clearInterval(timer);
+                  joinPersonIn();
+                })
+                .catch(() => {
+                  setLoading(false);
+                  setPopUp("connection timed out");
+                })
+              })
 
               socketRef.current.on("allowed", chatId => {
-                clearInterval(timer);
                 // allowed in the call
                 // add this user to the chat
                 addUser(user.email, chatId)
                 .then(() => {
-                  setLoading(false);
-                  joinPersonIn();
+                  // fetch the chat messages
+                  getChatMsgs(roomID)
+                  .then(messages => {
+                    messages.forEach(message => {
+                      const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
+                                          `${message.sender.first_name} ${message.sender.last_name}` : 
+                                          message.sender.email);
+                      const payload = {
+                        user: userIdentity,
+                        msg: message.text,
+                        time: message.created
+                      }
+                      initialState.push(payload);
+                    })
+                    waitingAudio.pause();
+                    clearInterval(timer);
+                    joinPersonIn();
+                  })  
+                  .catch(() => {
+                    // error in fetching chat messages
+                    setLoading(false);
+                    setPopUp("connection timed out");
+                  })
                 })
                 .catch(() => {
+                  // error in adding user to chat
+
                   setLoading(false);
                   // redirect the user to videochat home page
                   setPopUp("connection timed out");
@@ -185,6 +266,7 @@ const Room = (props) => {
               })
 
               socketRef.current.on("denied", () => {
+                waitingAudio.pause();
                 clearInterval(timer);
 
                 setTimeout(() => {
@@ -196,15 +278,34 @@ const Room = (props) => {
               }) 
             }
             else{
-              setLoading(false);
-              joinPersonIn();
+              // fetch the chat messages
+              getChatMsgs(roomID)
+              .then(messages => {
+                messages.forEach(message => {
+                  const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
+                                        `${message.sender.first_name} ${message.sender.last_name}` : 
+                                        message.sender.email);
+                  const payload = {
+                    user: userIdentity,
+                    msg: message.text,
+                    time: message.created
+                  }
+                  initialState.push(payload);
+                })
+                joinPersonIn();
+              })
+              .catch(() => {
+                // error in fetching chat messages
+                setLoading(false);
+                setPopUp("connection timed out");
+              })
             }
           }
         }
       }
   }, [isLoading]);
 
-  function createPeer(partnerId, myStream) {
+  function createPeer(partnerId, myStream, myAlias) {
     // If I am joining the room, I am the initiator
     const peer = new Peer({
       initiator: true,
@@ -231,16 +332,19 @@ const Room = (props) => {
     peer.on("signal", (signal) => {
       socketRef.current.emit("offer", {
         userToSignal: partnerId,
-        userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email,
+        userIdentity: myAlias,
         callerID: socketRef.current.id,
         signal,
       });
     });
 
+    peer.on("connect", () => {
+      // wait for connect event before using the data channel
+    });
     return peer;
   }
 
-  function addPeer(incomingSignal, callerID, myStream) {
+  function addPeer(incomingSignal, callerID, userIdentity, myStream, myAlias) {
     // since I am receiving the offer, initiator = false
     const peer = new Peer({
       initiator: false,
@@ -266,7 +370,24 @@ const Room = (props) => {
     // so the below event is fired only when our peer accepts the incomingSignal
     // i.e peer.signal(incomingSignal) will fire the below function
     peer.on("signal", (signal) => {
-      socketRef.current.emit("answer", { signal, callerID, userIdentity: ("name" in user && user.name.length > 0) ? user.name : user.email });
+      socketRef.current.emit("answer", { signal, callerID, userIdentity: myAlias });
+    });
+
+    peer.on("connect", () => {
+      // wait for connect event before using the data channel
+    });
+
+    // receiving message from this peer
+    peer.on("data", (data) => {
+      // clearTimeout(alertTimeout);
+      messageListReducer({
+        type: "addMessage",
+        payload: {
+          user: userIdentity,
+          msg: data.toString(),
+          time: Date.now(),
+        },
+      });
     });
 
     peer.signal(incomingSignal);
@@ -350,6 +471,29 @@ const Room = (props) => {
     setAudioMuted((prevStatus) => !prevStatus);
   };
 
+  
+  const sendMsg = (msg) => {
+    // also send the message in the backend
+    sendChatMsg(roomID, user.email, msg)
+    .then(() => {
+      peersRef.current.forEach(peerObj => {
+        const peer = peerObj.peer;
+        peer.send(msg);
+        messageListReducer({
+          type: "addMessage",
+          payload: {
+            user: "You",
+            msg: msg,
+            time: Date.now(),
+          },
+        });
+      })
+    })
+    .catch(() => {
+
+    })
+  };
+
   if (popUp === "connection timed out"){
     return (
       <AlertDialog
@@ -410,7 +554,7 @@ const Room = (props) => {
         showLeft={false}
         showRight={false}
         auto={true}
-        time={4000}
+        time={5000}
         onClose={() => {
           window.location.href = window.location.origin + "/videochat";
         }}
@@ -421,6 +565,17 @@ const Room = (props) => {
   if (!props.location.state) return <div id="room"></div>
   return (
     <div id="room">
+      {isMessenger /*?*/ && (
+        <Messenger
+          setIsMessenger={setIsMessenger}
+          sendMsg={sendMsg}
+          messageList={messageList}
+        />
+      )
+      /*  : (
+        messageAlert.isPopup && <Alert messageAlert={messageAlert} />
+      ) */
+      } 
       {
         popUp[0] === '1' && (
             <AlertDialog
@@ -469,11 +624,12 @@ const Room = (props) => {
         popUp[0] === '2' && (
           <AlertDialog
               title="User left"
-              message={`${popUp.substr(2)} left the meeting.`}
+              message={`${popUp.substr(2)} has left the meeting.`}
               showLeft={false}
-              showRight={false}
+              showRight={true}
+              btnTextRight={"OK"}
               auto={true}
-              time={6000}
+              time={5000}
               onClose={() => {
                 setPopUp('');
               }}
@@ -487,11 +643,12 @@ const Room = (props) => {
         popUp[0] === '3' && (
           <AlertDialog
               title="User joined"
-              message={`${popUp.substr(2)} joined the meeting.`}
+              message={`${popUp.substr(2)} has joined the meeting.`}
               showLeft={false}
-              showRight={false}
+              showRight={true}
+              btnTextRight={"OK"}
               auto={true}
-              time={7000}
+              time={5000}
               onClose={() => {
                 setPopUp('');
               }}
@@ -669,6 +826,19 @@ const Room = (props) => {
               <span className="material-icons" style={{ color: "white" }}>
                 call_end
               </span>
+            </IconButton>
+          </MyToolTip>
+
+          <MyToolTip title="Chat with Everyone">
+            <IconButton
+              onClick={() => setIsMessenger(prev => !prev)}
+              style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
+            >
+              {
+                isMessenger ? 
+                (<span class="material-icons-outlined" style={{ color: "white" }}>chat_bubble</span>) : 
+                (<span class="material-icons-outlined" style={{ color: "white" }}>chat</span>)
+              }
             </IconButton>
           </MyToolTip>
         </div>

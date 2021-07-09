@@ -89,7 +89,6 @@ const VideoChatHome = (props) => {
         data: data
       }
 
-      // here if the meeting is success we get the chatid
       const response = await axios(config);
       if (response.data.status === "failure"){
         setLoading(false);
@@ -97,8 +96,6 @@ const VideoChatHome = (props) => {
       }
       else{
         // join the user in
-        // const chatId = response.data.chat;
-        // await addUser(user.email, chatId); // add the user to the meeting chat
         setLink("");
         setLoading(false);
         props.history.push({

@@ -21,20 +21,27 @@ const socketToAlias = {}; // socketToAlias[s] - username of the socket s
 const chats = {}; // map from roomId to chatId
 const adminUsername = {}; // map from chatId to chatAdmins username
 const adminSocket = {}; // map from chatId to chatAdmins socket
+const allowedUsersInRoom = {}; // list of allowed users in a room
+const emails = {}; // email corr to socketRefs
+
 
 io.on('connection', socket => {
     // check for the room
 
+    // we map the email of the admin in this join room
     socket.on("join room", payload => {
         const roomID = payload.room;
         const useralias = payload.userIdentity;
+        const email = payload.email; // uniquely distinguishes the user
         if (rooms[roomID]) {
-            // this socket is not admin
-            rooms[roomID].push(socket.id);
+          // this socket is not admin
+          rooms[roomID].push(socket.id);
         } else {
-            // this socket is admin
-            rooms[roomID] = [socket.id];
-            adminSocket[roomID] = socket.id;
+          // this socket is admin
+          rooms[roomID] = [socket.id];
+          adminSocket[roomID] = socket.id;
+          allowedUsersInRoom[roomID] = [email];
+          emails[socket.id] = email;
         }
         socketToRoom[socket.id] = roomID;
         socketToAlias[socket.id] = useralias;
@@ -43,16 +50,33 @@ io.on('connection', socket => {
         socket.emit("all other users", usersInThisRoom); // emiting all users except the one who is joining
     });
 
+    // map the email of other users in permission event
     socket.on("permission", payload => {
       const userAlias = payload.user;
       const roomId = payload.room;
-      io.to(adminSocket[roomId]).emit("permit?", {id: socket.id, userAlias: userAlias});
+      const email = payload.email;
+      emails[socket.id] = email;
+
+      const allowedUsers = allowedUsersInRoom[roomId];
+      console.log("permission arrived");
+      console.log(allowedUsers, email);
+
+      if (allowedUsers.includes(email)){
+        // allow directly
+        socket.emit("no permit required");
+      }
+      else{
+        io.to(adminSocket[roomId]).emit("permit?", {id: socket.id, userAlias: userAlias });
+      }
     });
 
     socket.on("permit status", payload => {
       if (payload.allowed){
         // allow the user to enter into the meeting
-        io.to(payload.id).emit("allowed", chats[socketToRoom[socket.id]]);
+        const roomID = socketToRoom[socket.id];
+        // add this user to the list of trusted users
+        allowedUsersInRoom[roomID].push(emails[payload.id]);
+        io.to(payload.id).emit("allowed", chats[roomID]);
       }
       else{
         io.to(payload.id).emit("denied");
@@ -81,17 +105,14 @@ io.on('connection', socket => {
               delete adminUsername[chats[roomID]];
               delete adminSocket[roomID];
               delete chats[roomID];
-            }
-            else{
-              // check if this user is admin
-              // change the room admin to some random person
-              adminSocket[roomID] = rooms[roomID][0];
+              delete allowedUsersInRoom[roomID];
             }
         }
 
         // remove this socket id from socketToRoom and socketToAlias collection
         delete socketToRoom[socket.id]; 
         delete socketToAlias[socket.id];
+        delete emails[socket.id];
 
         // emit event to all other users 
         socket.broadcast.emit("user left", {id: socket.id, alias: useralias});
@@ -195,20 +216,24 @@ app.post("/create_user", async (req, res) => {
   app.post("/get_chat_msgs", async (req, res) => {
     try {
       const data = req.body;
+      const roomId = data.room;
+      const chatId = chats[roomId];
+      const adminUser = adminUsername[chatId];
+
       const config = {
         method: "get",
-        url: "https://api.chatengine.io/chats/38128/messages/", // dummy chat
+        url: `https://api.chatengine.io/chats/${chatId}/messages/`,
         headers: {
           "Project-ID": process.env.PROJECT_ID,
-          "User-Name": data.username,
+          "User-Name": adminUser,
           "User-Secret": process.env.USER_SECRET,
         },
       };
       const response = await axios(config);
-      console.log(response.data);
+      // console.log(response.data);
       res.send(response.data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       res.send(error);
     }
   });
@@ -216,21 +241,27 @@ app.post("/create_user", async (req, res) => {
   app.post("/post_chat_msg", async (req, res) => {
     try {
       const data = req.body;
+      const roomId = data.room;
+      const chatId = chats[roomId];
+      const sender_username = data.username;
+
       const config = {
         method: "post",
-        url: "https://api.chatengine.io/chats/38128/messages/",
+        url: `https://api.chatengine.io/chats/${chatId}/messages/`,
         headers: {
           "Project-ID": process.env.PROJECT_ID,
-          "User-Name": data.username,
+          "User-Name": sender_username,
           "User-Secret": process.env.USER_SECRET,
         },
-        data: data.data,
+        data: {
+          text: data.text
+        }
       };
       response = await axios(config);
-      console.log(response.data);
+      // console.log(response.data);
       res.send(response.data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       res.send(error);
     }
   });

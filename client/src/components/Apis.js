@@ -14,7 +14,7 @@ export const createUser = async (email, firstName, lastName) => {
         "data": data,
       };
       const response = await axios(config); // send request using axios
-      console.log(response.data);
+      // console.log(response.data);
       return response.data.id;
     } 
     catch (error) {
@@ -75,19 +75,16 @@ export const addUser = async (userName, chatId) => {
         data: data,
       };
       const response = await axios(config);
-      console.log(response);
+      // console.log(response);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
-export const getChatMsgs = async () => {
+export const getChatMsgs = async (roomId) => {
     try {
-      /*****
-       * username, (id in backend)
-      *****/
       const data = {
-        username: "Saket",
+        room: roomId
       };
       const config = {
         method: "post",
@@ -95,23 +92,19 @@ export const getChatMsgs = async () => {
         data: data,
       };
       const response = await axios(config);
-      console.log(response);
+      return response.data;
+      
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
-export const sendChatMsg = async () => {
+export const sendChatMsg = async (roomId, userName, msg) => {
     try {
-      /*****
-       * username, (id in backend)
-      *****/
       const data = {
-        username: "Saket",
-        data: {
-          "text": "Hello World",
-          "custom_json": {"gif": "https://giphy.com/clips/ufc-4eZuG5kNYvDrGc6gYk"}
-        }
+        room: roomId,
+        username: userName, 
+        text: msg
       };
       const config = {
         method: "post",

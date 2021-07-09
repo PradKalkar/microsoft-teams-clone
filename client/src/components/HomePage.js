@@ -36,12 +36,7 @@ const HomePage = (props) => {
 
   const chatHandler = () => {
     if (isAuthenticated) {
-      props.history.push({
-        pathname: "/chat",
-        state: {
-          username: user.email
-        }
-      });
+      props.history.push("/chat");
     }
     else{
       loginWithRedirect({
