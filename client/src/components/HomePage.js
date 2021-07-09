@@ -1,10 +1,28 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useAuth0 } from "@auth0/auth0-react";
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { useEffect, useState } from "react";
+import { createUser } from './Apis';
+import AlertDialog from '../components/AlertDialog';
 import "./HomePage.css";
 
 const HomePage = (props) => {
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState(false);
   const { isLoading, isAuthenticated, loginWithRedirect, logout, user } =
     useAuth0();
+
+  useEffect(async() => {
+    if (!isLoading && isAuthenticated){
+      // create user in the chat when a user is authenticated on the home page
+      setLoading(true);
+      let userId = await createUser(user.email, user.given_name, user.family_name);
+      if (!userId){
+        setPopup(true);
+      }
+      setLoading(false);
+    }
+  }, [isLoading])
 
   const videoCallHandler = () => {
     if (isAuthenticated) {
@@ -16,10 +34,34 @@ const HomePage = (props) => {
     }
   };
 
-  const chatHandler = () => {};
+  const chatHandler = () => {
+    if (isAuthenticated) {
+      props.history.push("/chat");
+    }
+    else{
+      loginWithRedirect({
+        redirectUri: `${window.location.origin}/chat`
+      })
+    }
+  };
+
+  if (popup) {
+    return (
+      <AlertDialog
+        title="ERR Connection Timed Out"
+        message="Please check your internet connection and try again."
+        showLeft={false}
+        showRight={true}
+        auto={false}
+        btnTextRight="Reload"
+        onClose={() => window.location.reload()}
+        onRight={() => window.location.reload()}
+      />
+    )
+  }
 
   return (
-      isLoading ? (
+      isLoading || loading ? (
         <center style={{marginTop: "5px"}}>
           <CircularProgress color="secondary" />
         </center>
@@ -28,10 +70,10 @@ const HomePage = (props) => {
         <>
         {!isAuthenticated ? (
           <nav id="homepage-nav">
-            <button class="btn-roxo" onClick={() => loginWithRedirect()}>
+            <button className="btn-roxo" onClick={() => loginWithRedirect()}>
               Log In
               <span
-                class="material-icons-outlined"
+                className="material-icons-outlined"
                 style={{ color: "white", fontSize: "30px", margin: "5px" }}
               >
                 login
@@ -40,17 +82,17 @@ const HomePage = (props) => {
           </nav>
         ) : (
           <nav id="homepage-nav">
-            <button class="btn-roxo" onClick={() => logout()}>
+            <button className="btn-roxo" onClick={() => logout()}>
               Log Out
               <span
-                class="material-icons-outlined"
+                className="material-icons-outlined"
                 style={{ color: "white", fontSize: "30px", margin: "5px" }}
               >
                 logout
               </span>
             </button>
             <h3 style={{ fontSize: "30px", float: "right", paddingTop: "10px" }}>
-              Hi, {"name" in user ? user.name : user.email}!
+              Hi, {"given_name" in user ? user.given_name : ("name" in user ? user.name : user.email)}!
             </h3>
           </nav>
         )
@@ -75,23 +117,23 @@ const HomePage = (props) => {
               <b>Konnect Well</b> makes it easy to connect with others
               face-to-face virtually and collaborate across any device.
             </p>
-            <div class="botoes">
-              <button class="btn-azul" onClick={videoCallHandler}>
+            <div className="botoes">
+              <button className="btn-azul" onClick={videoCallHandler}>
                 <div>
                   Video Call
                   <span
-                    class="material-icons-outlined"
+                    className="material-icons-outlined"
                     style={{ color: "white", fontSize: "50px" }}
                   >
                     video_call
                   </span>
                 </div>
               </button>
-              <button class="btn-roxo" onClick={chatHandler}>
+              <button className="btn-roxo" onClick={chatHandler}>
                 <div>
                   <div style={{ marginBottom: "10px" }}>Chat</div>
                   <span
-                    class="material-icons-outlined"
+                    className="material-icons-outlined"
                     style={{ color: "white", fontSize: "30px" }}
                   >
                     forum
@@ -103,11 +145,11 @@ const HomePage = (props) => {
           <div id="banner-03"></div>
         </div>
       </section>
-      <div class="separador">
-        <div class="marcador">01</div>
+      <div className="separador">
+        <div className="marcador">01</div>
       </div>
       <section id="conteudo">
-        <div class="galeria">
+        <div className="galeria">
           <div>
             <img
               src="https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-woman-in-videocall.jpg"
@@ -133,8 +175,8 @@ const HomePage = (props) => {
             />
           </div>
         </div>
-        <div class="texto">
-          <h1 class="titulo">Built for modern use</h1>
+        <div className="texto">
+          <h1 className="titulo">Built for modern use</h1>
           <h2> Smarter meetings, chat, all in one place</h2>
           <p>
             Smooth Video calls with screen sharing, live chat in meetings
@@ -145,29 +187,29 @@ const HomePage = (props) => {
           </p>
         </div>
       </section>
-      <div class="separador-second">
-        <div class="marcador-second">02</div>
+      <div className="separador-second">
+        <div className="marcador-second">02</div>
       </div>
       <section id="footer">
-        <div class="footer-cont">
-          <div class="col-1">
+        <div className="footer-cont">
+          <div className="col-1">
             <h2>Experience more together</h2>
           </div>
-          <div class="col-2">
+          <div className="col-2">
             <p>
               Stay connected with reliable HD meetings and unlimited one-on-one
               and group video sessions.
             </p>
           </div>
-          <div class="col-3">
+          <div className="col-3">
             {
             !isLoading ?
             (
-            <button class="btn-roxo-f" onClick={() => loginWithRedirect()}>
+            <button className="btn-roxo-f" onClick={() => loginWithRedirect()}>
               <div>
                 {!isAuthenticated ? "Log In" : "Log Out"}
                 <span
-                  class="material-icons-outlined"
+                  className="material-icons-outlined"
                   style={{ color: "white", fontSize: "30px", margin: "5px" }}
                 >
                   {!isAuthenticated ? "login" : "logout"}
