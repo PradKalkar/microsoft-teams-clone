@@ -26,14 +26,14 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
   };
 
   const handleSendMsg = () => {
-    sendMsg(msg);
+    if (msg.length > 0) sendMsg(msg);
     setMsg("");
   };
 
   return (
     <div className="messenger-container">
       <div className="messenger-header">
-        <h3>Meeting details</h3>
+        <h3>Meeting Chat</h3>
         <FontAwesomeIcon
           className="icon"
           icon={faTimes}
@@ -44,14 +44,6 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
       </div>
 
       <div className="messenger-header-tabs">
-        <div className="tab">
-          <FontAwesomeIcon className="icon" icon={faUserFriends} />
-          <p>People (1)</p>
-        </div>
-        <div className="tab active">
-          <FontAwesomeIcon className="icon" icon={faCommentAlt} />
-          <p>Chat</p>
-        </div>
       </div>
 
       <div className="chat-section">
@@ -77,12 +69,13 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
           onKeyDown={(e) => handleKeyDown(e)}
         />
 
-        <MyToolTip title="Send Message">
+        <MyToolTip title={msg.length > 0 ? "Send Message" : ""}>
             <IconButton
+              disabled={msg.length > 0 ? false : true}
               onClick={handleSendMsg}
-              className="icon"
+              style={{cursor: msg.length > 0 ? "pointer" : "default", fontSize: "20px"}}
             >
-              <span class="material-icons-round">send</span>
+              <span class="material-icons-sharp" style={{color: msg.length > 0 ? "#0e7878" : "grey", fontSize: "32px"}}>send</span>
             </IconButton>
         </MyToolTip>
       </div>

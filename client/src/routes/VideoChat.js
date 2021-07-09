@@ -26,13 +26,14 @@ const Room = (props) => {
     initialState
   );
   const [isMessenger, setIsMessenger] = useState(false);
-  // const [messageAlert, setMessageAlert] = useState({});
+  const [messageAlert, setMessageAlert] = useState(false);
 
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
   const permitAudio = new Audio("/sounds/permission.mp3");
   const waitingAudio = new Audio("/sounds/waiting.mp3");
   const errorAudio = new Audio("/sounds/error.mp3");
+  const chatNotificationAudio = new Audio("/sounds/chat.mp3");
   
   const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,9 @@ const Room = (props) => {
                       time: Date.now(),
                     },
                   });
+
+                  if (!isMessenger) setMessageAlert(true);
+                  chatNotificationAudio.play();
                 });
 
                 p.peer.signal(payload.signal); // accepting the returned signal
@@ -204,7 +208,7 @@ const Room = (props) => {
                 // fetch the chat messages
                 getChatMsgs(roomID)
                 .then(messages => {
-                  // console.log(messages);
+                  if (messages.length > 0) setMessageAlert(true);
                   messages.forEach(message => {
                     const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
                                           `${message.sender.first_name} ${message.sender.last_name}` : 
@@ -235,6 +239,7 @@ const Room = (props) => {
                   // fetch the chat messages
                   getChatMsgs(roomID)
                   .then(messages => {
+                    if (messages.length > 0) setMessageAlert(true);
                     messages.forEach(message => {
                       const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
                                           `${message.sender.first_name} ${message.sender.last_name}` : 
@@ -281,6 +286,7 @@ const Room = (props) => {
               // fetch the chat messages
               getChatMsgs(roomID)
               .then(messages => {
+                if (messages.length > 0) setMessageAlert(true);
                 messages.forEach(message => {
                   const userIdentity = ("first_name" in message.sender && message.sender.first_name.length > 0 ?
                                         `${message.sender.first_name} ${message.sender.last_name}` : 
@@ -388,6 +394,9 @@ const Room = (props) => {
           time: Date.now(),
         },
       });
+
+      if (!isMessenger) setMessageAlert(true);
+      chatNotificationAudio.play();    
     });
 
     peer.signal(incomingSignal);
@@ -476,21 +485,34 @@ const Room = (props) => {
     // also send the message in the backend
     sendChatMsg(roomID, user.email, msg)
     .then(() => {
-      peersRef.current.forEach(peerObj => {
-        const peer = peerObj.peer;
-        peer.send(msg);
+      if (peers.length === 0){
+        // only I am in the chat
         messageListReducer({
           type: "addMessage",
           payload: {
             user: "You",
             msg: msg,
-            time: Date.now(),
-          },
-        });
-      })
+            time: Date.now()
+          }
+        })
+      }
+      else{
+        peersRef.current.forEach(peerObj => {
+          const peer = peerObj.peer;
+          peer.send(msg);
+          messageListReducer({
+            type: "addMessage",
+            payload: {
+              user: "You",
+              msg: msg,
+              time: Date.now(),
+            },
+          });
+        })
+      }
     })
     .catch(() => {
-
+      setPopUp("connection timed out");
     })
   };
 
@@ -565,16 +587,14 @@ const Room = (props) => {
   if (!props.location.state) return <div id="room"></div>
   return (
     <div id="room">
-      {isMessenger /*?*/ && (
-        <Messenger
-          setIsMessenger={setIsMessenger}
-          sendMsg={sendMsg}
-          messageList={messageList}
-        />
-      )
-      /*  : (
-        messageAlert.isPopup && <Alert messageAlert={messageAlert} />
-      ) */
+      {
+        isMessenger && (
+          <Messenger
+            setIsMessenger={setIsMessenger}
+            sendMsg={sendMsg}
+            messageList={messageList}
+          />
+        )
       } 
       {
         popUp[0] === '1' && (
@@ -722,14 +742,17 @@ const Room = (props) => {
         </GridList>
       </div>
       <nav id="video-controls">
-        <h3 style={{ position: "absolute", left: `${width < 600 ? 7 : 20}px`, fontSize: "auto" }}>
+        {
+          width > 500 && 
+          <h3 style={{ position: "absolute", left: `${width < 600 ? 7 : 20}px`, fontSize: "auto" }}>
           {new Date().toLocaleString("en-US", {
             hour12: true,
             hour: "numeric",
             minute: "numeric",
           })}
         </h3>
-        <div style={{ position: "absolute", left: `${width < 770 ? width * 30 / 100 : width * 41 / 100}px` }}>
+        }
+        <div style={{ position: "absolute", left: `${width < 700 ? (width < 500 ? 30 : width * 20 / 100) : width * 38 / 100}px` }}>
           {!screenShared && (
             <MyToolTip
               title={userStream.current ? (videoMuted ? "Turn on Camera" : "Turn off Camera") : "Loading..."}
@@ -818,32 +841,7 @@ const Room = (props) => {
             </IconButton>
           </MyToolTip>
 
-          <MyToolTip title="Hang Up">
-            <IconButton
-              onClick={endCall}
-              style={{ backgroundColor: "#eb3f21", margin: `${width < 600 ? 2 : 4}px` }}
-            >
-              <span className="material-icons" style={{ color: "white" }}>
-                call_end
-              </span>
-            </IconButton>
-          </MyToolTip>
-
-          <MyToolTip title="Chat with Everyone">
-            <IconButton
-              onClick={() => setIsMessenger(prev => !prev)}
-              style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
-            >
-              {
-                isMessenger ? 
-                (<span class="material-icons-outlined" style={{ color: "white" }}>chat_bubble</span>) : 
-                (<span class="material-icons-outlined" style={{ color: "white" }}>chat</span>)
-              }
-            </IconButton>
-          </MyToolTip>
-        </div>
-        <h5 style={{ position: "absolute", right: (width / 100) * 3 }}>
-        <MyToolTip title="Copy meeting Room">
+          <MyToolTip title="Copy meeting Room">
             <IconButton
               onClick={() => {
                 navigator.clipboard.writeText(roomID);
@@ -856,7 +854,50 @@ const Room = (props) => {
               </span>
             </IconButton>
           </MyToolTip>
-        </h5>
+
+          <MyToolTip title={messageAlert ? "Unread messages" : "Chat with Everyone"}>
+            <IconButton
+              onClick={() => {
+                setIsMessenger(prev => !prev);
+                if (messageAlert){
+                  setMessageAlert(false);
+                }
+              }}
+              style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
+            >
+              {
+                !isMessenger ? 
+                  (messageAlert ? 
+                  <span class="material-icons-outlined" style={{ color: "white" }}>mark_chat_unread</span> : 
+                  <span class="material-icons-outlined" style={{ color: "white" }}>chat</span>) : 
+                (<span class="material-icons-outlined" style={{ color: "white" }}>chat_bubble</span>)
+              }
+            </IconButton>
+          </MyToolTip>
+
+          <MyToolTip title="Hang Up">
+            <IconButton
+              onClick={endCall}
+              style={{ backgroundColor: "#eb3f21", margin: `${width < 600 ? 2 : 4}px` }}
+            >
+              <span className="material-icons" style={{ color: "white" }}>
+                call_end
+              </span>
+            </IconButton>
+          </MyToolTip>
+        </div>
+        <div style={{position: "absolute", right: `${width < 500 ? 20 : 10}px`}}>
+        <MyToolTip title={`${peers.length + 1} participant${peers.length > 0 ? 's' : ''}`}>
+            <IconButton
+              onClick={() => {}}
+              style={{ backgroundColor: "#404239", margin: `${width < 600 ? 2 : 4}px` }}
+            >
+              <span className="material-icons-outlined" style={{ color: "white" }}>
+                people
+              </span>
+            </IconButton>
+          </MyToolTip>
+        </div>
       </nav>
     </div>
   );
