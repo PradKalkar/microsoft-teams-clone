@@ -74,7 +74,7 @@ export const addUser = async (userName, chatId) => {
         url: "/add_user",
         data: data,
       };
-      const response = await axios(config);
+      await axios(config);
       // console.log(response);
     } catch (error) {
       // console.log(error);

@@ -2,9 +2,7 @@ import { useState } from "react";
 import "./Messenger.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTimes,
-  faUserFriends,
-  faCommentAlt
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { formatDate } from "../utils/helpers"
 import DOMPurify from 'dompurify';
