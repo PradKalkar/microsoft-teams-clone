@@ -101,7 +101,7 @@ const HomePage = (props) => {
         <div id="logo">
           <h2>Konnect Well</h2>
           <img
-            src="../assets/images/logo.png"
+            src="%PUBLIC_URL%/images/logo.png"
             height="100vh"
             alt="Logo Meet"
           />

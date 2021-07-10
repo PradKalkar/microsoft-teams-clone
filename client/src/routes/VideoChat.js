@@ -28,12 +28,12 @@ const Room = (props) => {
   const [isMessenger, setIsMessenger] = useState(false);
   const [messageAlert, setMessageAlert] = useState(false);
 
-  const hangUpAudio = new Audio("../assets/sounds/hangupsound.mp3");
-  const joinInAudio = new Audio("../assets/sounds/joinsound.mp3");
-  const permitAudio = new Audio("../assets/sounds/permission.mp3");
-  const waitingAudio = new Audio("../assets/sounds/waiting.mp3");
-  const errorAudio = new Audio("../assets/sounds/error.mp3");
-  const chatNotificationAudio = new Audio("../assets/sounds/chat.mp3");
+  const hangUpAudio = new Audio("%PUBLIC_URL%/sounds/hangupsound.mp3");
+  const joinInAudio = new Audio("%PUBLIC_URL%/sounds/joinsound.mp3");
+  const permitAudio = new Audio("%PUBLIC_URL%/sounds/permission.mp3");
+  const waitingAudio = new Audio("%PUBLIC_URL%/sounds/waiting.mp3");
+  const errorAudio = new Audio("%PUBLIC_URL%/sounds/error.mp3");
+  const chatNotificationAudio = new Audio("%PUBLIC_URL%/sounds/chat.mp3");
   
   const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const [loading, setLoading] = useState(false);
