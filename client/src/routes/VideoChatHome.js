@@ -229,7 +229,7 @@ const VideoChatHome = (props) => {
         <center style={{ marginTop: "120px" }}>
           <h2>Konnect Well</h2>
           <img
-            src="/images/logo.png"
+            src="../assets/images/logo.png"
             alt="logo"
             width="200px"
             height="200px"
