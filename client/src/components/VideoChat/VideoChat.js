@@ -10,30 +10,30 @@ import {
   IconButton,
 } from "@material-ui/core";
 import MyToolTip from "./MyToolTip";
-import useWindowDimensions from "../hooks/useWindowDimensions";
+import useWindowDimensions from "../../hooks/useWindowDimensions";
 import PartnerVideo from "./PartnerVideo";
 import { useAuth0 } from "@auth0/auth0-react";
-import AlertDialog from "../components/AlertDialog";
-import { addUser, getChatMsgs, sendChatMsg } from '../components/Apis';
-import Messenger from "../components/Messenger";
-import MessageListReducer from "../reducers/MessageListReducer";
+import AlertDialog from "../Common/AlertDialog";
+import { addUser, getChatMsgs, sendChatMsg } from '../Chat/Apis';
+import Messenger from "../VideoChat/Messenger/Messenger";
+import MessageListReducer from "../../reducers/MessageListReducer";
 
 const initialState = [];
 
 const Room = (props) => {
-  const [messageList, messageListReducer] = useReducer(
-    MessageListReducer,
-    initialState
-  );
-  const [isMessenger, setIsMessenger] = useState(false);
-  const [messageAlert, setMessageAlert] = useState(false);
-
   const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
   const joinInAudio = new Audio("/sounds/joinsound.mp3");
   const permitAudio = new Audio("/sounds/permission.mp3");
   const waitingAudio = new Audio("/sounds/waiting.mp3");
   const errorAudio = new Audio("/sounds/error.mp3");
   const chatNotificationAudio = new Audio("/sounds/chat.mp3");
+
+  const [messageList, messageListReducer] = useReducer(
+    MessageListReducer,
+    initialState
+  );
+  const [isMessenger, setIsMessenger] = useState(false);
+  const [messageAlert, setMessageAlert] = useState(false);  
   
   const { isAuthenticated, loginWithRedirect, isLoading, user } = useAuth0();
   const [loading, setLoading] = useState(false);

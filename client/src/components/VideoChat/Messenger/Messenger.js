@@ -4,9 +4,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes
 } from "@fortawesome/free-solid-svg-icons";
-import { formatDate } from "../utils/helpers"
+import { formatDate } from "../../../utils/helpers"
 import DOMPurify from 'dompurify';
-import MyToolTip from "../routes/MyToolTip";
+import MyToolTip from "../MyToolTip";
 import { IconButton } from "@material-ui/core";
 
 const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {

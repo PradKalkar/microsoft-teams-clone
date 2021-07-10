@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch } from "react-router-dom";
-import VideoChat from "./routes/VideoChat";
-import VideoChatHome from "./routes/VideoChatHome";
+import VideoChat from "./components/VideoChat/VideoChat";
+import VideoChatHome from "./components/VideoChat/VideoChatHome/VideoChatHome";
 import HomePage from './components/HomePage';
-import Chat from './components/Chat';
-import ErrorPage from './components/ErrorPage';
+import Chat from './components/Chat/Chat';
+import ErrorPage from './components/Common/ErrorPage';
 import './App.css';
 
 const App = () => {

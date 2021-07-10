@@ -3,7 +3,7 @@ import { ChatEngine} from 'react-chat-engine';
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import AlertDialog from './AlertDialog';
+import AlertDialog from '../Common/AlertDialog';
 import { useAuth0 } from '@auth0/auth0-react';
 
 const Chat = () => {

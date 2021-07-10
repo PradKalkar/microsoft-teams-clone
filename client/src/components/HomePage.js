@@ -2,9 +2,9 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { useEffect, useState } from "react";
-import { createUser } from './Apis';
-import AlertDialog from '../components/AlertDialog';
-import logoImg from "../assets/images/logo.png"
+import { createUser } from '../components/Chat/Apis';
+import AlertDialog from '../components/Common/AlertDialog';
+import logoImg from "../assets/images/logo.png";
 import "./HomePage.css";
 
 const HomePage = (props) => {

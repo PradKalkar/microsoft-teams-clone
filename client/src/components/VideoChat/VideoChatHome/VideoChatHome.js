@@ -5,9 +5,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faKeyboard } from "@fortawesome/free-solid-svg-icons";
 import { v1 as uuid } from "uuid";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { createChat, deleteChat } from '../components/Apis';
-import logoImg from "../assets/images/logo.png"
-import AlertDialog from "../components/AlertDialog";
+import { createChat, deleteChat } from '../../Chat/Apis';
+import logoImg from "../../../assets/images/logo.png";
+import AlertDialog from "../../Common/AlertDialog";
 import axios from "axios";
 import "./VideoChatHome.scss";
 
@@ -31,7 +31,7 @@ const VideoChatHome = (props) => {
   const startNewMeeting = async () => {
     setLoading(true);
     const roomId = uuid();
-    const chatId = await createChat(roomId, user.email);
+    const chatId = await createChat(roomId, user.email, user.given_name);
     if (!chatId){
       setPopup("connection timed out");
       setLoading(false);

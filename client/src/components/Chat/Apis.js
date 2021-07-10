@@ -1,31 +1,34 @@
 import axios from "axios";
+import moment from "moment";
 
 export const createUser = async (email, firstName, lastName) => {
     try {
       const data = {
-        "username": email,
-        "first_name": firstName,
-        "last_name": lastName,
-        "email": email
+        username: email,
+        first_name: firstName,
+        last_name: lastName,
+        email: email
       };
       const config = {
-        "method": "post", // get or create user
-        "url": "/create_user",
-        "data": data,
+        method: "post", // get or create user
+        url: "/create_user",
+        data: data,
       };
       const response = await axios(config); // send request using axios
-      // console.log(response.data);
       return response.data.id;
     } 
     catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
-export const createChat = async (roomId, admin) => {
+export const createChat = async (roomId, admin, name) => {
     try {
+      const userName = name.length > 0 ? name: admin;
+      const today = new Date();
+      const formattedDate = moment(today).format("MMMM Do YYYY, h:mm:ss a");
       const data = {
-        title: `meeting_${roomId}`, // for eg meeting_123
+        title: `${userName}'s Meeting@${formattedDate}: Room=${roomId}`, 
         admin_username: admin, // one who creates the meeting
       };
       const config = {
@@ -34,7 +37,6 @@ export const createChat = async (roomId, admin) => {
         data: data,
       };
       const response = await axios(config); // send request using axios
-      // console.log(response.data);
       return response.data.id; // return the chat id
     } 
     catch (error) {
@@ -62,9 +64,6 @@ export const createChat = async (roomId, admin) => {
 
 export const addUser = async (userName, chatId) => {
     try {
-      /*****
-       * username, (id in backend)
-      *****/
       const data = {
         username: userName,
         chatId: chatId
@@ -75,7 +74,6 @@ export const addUser = async (userName, chatId) => {
         data: data,
       };
       await axios(config);
-      // console.log(response);
     } catch (error) {
       // console.log(error);
     }
@@ -111,9 +109,8 @@ export const sendChatMsg = async (roomId, userName, msg) => {
         url: "/post_chat_msg",
         data: data,
       };
-      const response = await axios(config);
-      console.log(response);
+      await axios(config);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   }

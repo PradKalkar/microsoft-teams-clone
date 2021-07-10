@@ -58,9 +58,6 @@ io.on('connection', socket => {
       emails[socket.id] = email;
 
       const allowedUsers = allowedUsersInRoom[roomId];
-      console.log("permission arrived");
-      console.log(allowedUsers, email);
-
       if (allowedUsers.includes(email)){
         // allow directly
         socket.emit("no permit required");
@@ -124,149 +121,138 @@ app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, './client/build', 'index.html'));
 });
 
-// ----------------------------- chat related stuff
+// Chat Apis
 
 app.post("/create_user", async (req, res) => {
-    try {
-      let data = req.body;
-      data["secret"] = process.env.USER_SECRET;
-      const config = {
-        method: "put", // get or create user
-        url: "https://api.chatengine.io/users/",
-        headers: {
-          "PRIVATE-KEY": process.env.PROJECT_PRIVATE_KEY,
-        },
-        data: data,
-      };
-      const response = await axios(config); // send request using axios
-      res.send(response.data);
-    } catch (error) {
-      console.log(error);
-      res.send(error);
-    }
-  });
+  try {
+    let data = req.body;
+    data["secret"] = process.env.USER_SECRET;
+    const config = {
+      method: "put", // get or create user
+      url: "https://api.chatengine.io/users/",
+      headers: {
+        "PRIVATE-KEY": process.env.PROJECT_PRIVATE_KEY,
+      },
+      data: data,
+    };
+    const response = await axios(config); // send request using axios
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
   
-  app.post("/create_chat", async (req, res) => {
-    try {
-      let data = req.body;
-      console.log(data);
-      const config = {
-        method: "post", // get or create user
-        url: "https://api.chatengine.io/chats/",
-        headers: {
-          "Project-ID": process.env.PROJECT_ID,
-          "User-Name": data.admin_username,
-          "User-Secret": process.env.USER_SECRET,
-        },
-        data: data,
-      };
-      const response = await axios(config); // send request using axios
-      res.send(response.data);
-    } catch (error) {
-      console.log(error);
-      res.send(error);
-    }
-  });
+app.post("/create_chat", async (req, res) => {
+  try {
+    let data = req.body;
+    const config = {
+      method: "post", // get or create user
+      url: "https://api.chatengine.io/chats/",
+      headers: {
+        "Project-ID": process.env.PROJECT_ID,
+        "User-Name": data.admin_username,
+        "User-Secret": process.env.USER_SECRET,
+      },
+      data: data,
+    };
+    const response = await axios(config); // send request using axios
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
-  app.post("/delete_chat", async (req, res) => {
-    try {
-      const data = req.body;
-      console.log(data);
-      const config = {
-        method: "delete", // get or create user
-        url: `https://api.chatengine.io/chats/${data.chat_id}`,
-        headers: {
-          "Project-ID": process.env.PROJECT_ID,
-          "User-Name": data.admin_username,
-          "User-Secret": process.env.USER_SECRET,
-        }
-      };
-      const response = await axios(config); // send request using axios
-      res.send(response.data);
-    } catch (error) {
-      console.log(error);
-      res.send(error);
-    }
-  });
+app.post("/delete_chat", async (req, res) => {
+  try {
+    const data = req.body;
+    const config = {
+      method: "delete", // get or create user
+      url: `https://api.chatengine.io/chats/${data.chat_id}`,
+      headers: {
+        "Project-ID": process.env.PROJECT_ID,
+        "User-Name": data.admin_username,
+        "User-Secret": process.env.USER_SECRET,
+      }
+    };
+    const response = await axios(config); // send request using axios
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
-  app.post("/add_user", async (req, res) => {
-    try {
-      const data = req.body;
-      const config = {
-        method: "POST",
-        url: `https://api.chatengine.io/chats/${data.chatId}/people/`, // dummy chat
-        headers: {
-          "Project-ID": process.env.PROJECT_ID,
-          "User-Name": adminUsername[data.chatId], // chat admin
-          "User-Secret": process.env.USER_SECRET,
-        },
-        data: {
-          username: data.username
-        },
-      };
-      const response = await axios(config);
-      console.log(response.data);
-      res.send(response.data);
-    } catch (error) {
-      console.log(error);
-      res.send(error);
-    }
-  });
+app.post("/add_user", async (req, res) => {
+  try {
+    const data = req.body;
+    const config = {
+      method: "POST",
+      url: `https://api.chatengine.io/chats/${data.chatId}/people/`, // dummy chat
+      headers: {
+        "Project-ID": process.env.PROJECT_ID,
+        "User-Name": adminUsername[data.chatId], // chat admin
+        "User-Secret": process.env.USER_SECRET,
+      },
+      data: {
+        username: data.username
+      },
+    };
+    const response = await axios(config);
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
   
-  app.post("/get_chat_msgs", async (req, res) => {
-    try {
-      const data = req.body;
-      const roomId = data.room;
-      const chatId = chats[roomId];
-      const adminUser = adminUsername[chatId];
+app.post("/get_chat_msgs", async (req, res) => {
+  try {
+    const data = req.body;
+    const roomId = data.room;
+    const chatId = chats[roomId];
+    const adminUser = adminUsername[chatId];
 
-      const config = {
-        method: "get",
-        url: `https://api.chatengine.io/chats/${chatId}/messages/`,
-        headers: {
-          "Project-ID": process.env.PROJECT_ID,
-          "User-Name": adminUser,
-          "User-Secret": process.env.USER_SECRET,
-        },
-      };
-      const response = await axios(config);
-      // console.log(response.data);
-      res.send(response.data);
-    } catch (error) {
-      // console.log(error);
-      res.send(error);
-    }
-  });
+    const config = {
+      method: "get",
+      url: `https://api.chatengine.io/chats/${chatId}/messages/`,
+      headers: {
+        "Project-ID": process.env.PROJECT_ID,
+        "User-Name": adminUser,
+        "User-Secret": process.env.USER_SECRET,
+      },
+    };
+    const response = await axios(config);
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
   
-  app.post("/post_chat_msg", async (req, res) => {
-    try {
-      const data = req.body;
-      const roomId = data.room;
-      const chatId = chats[roomId];
-      const sender_username = data.username;
+app.post("/post_chat_msg", async (req, res) => {
+  try {
+    const data = req.body;
+    const roomId = data.room;
+    const chatId = chats[roomId];
+    const sender_username = data.username;
 
-      const config = {
-        method: "post",
-        url: `https://api.chatengine.io/chats/${chatId}/messages/`,
-        headers: {
-          "Project-ID": process.env.PROJECT_ID,
-          "User-Name": sender_username,
-          "User-Secret": process.env.USER_SECRET,
-        },
-        data: {
-          text: data.text
-        }
-      };
-      response = await axios(config);
-      // console.log(response.data);
-      res.send(response.data);
-    } catch (error) {
-      // console.log(error);
-      res.send(error);
-    }
-  });
+    const config = {
+      method: "post",
+      url: `https://api.chatengine.io/chats/${chatId}/messages/`,
+      headers: {
+        "Project-ID": process.env.PROJECT_ID,
+        "User-Name": sender_username,
+        "User-Secret": process.env.USER_SECRET,
+      },
+      data: {
+        text: data.text
+      }
+    };
+    response = await axios(config);
+    res.send(response.data);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
-  // check new meeting creation
+// check new meeting creation
 app.post("/new_meeting", (req, res) => {
   const data = req.body;
   const roomId = data.room;
@@ -284,27 +270,27 @@ app.post("/new_meeting", (req, res) => {
   }
 })
 
-  // check existing meeting creation
-  // if success, send a permission request to admin of the meeting
-  app.post("/existing_meeting", (req, res) => {
-    const data = req.body;
-    const roomId = data.room;
-  
-    if (rooms[roomId]){
-      // possible to join this room
-      const data = {
-        status: "success",
-      }
-      res.send(data);
+// check existing meeting creation
+// if success, send a permission request to admin of the meeting
+app.post("/existing_meeting", (req, res) => {
+  const data = req.body;
+  const roomId = data.room;
+
+  if (rooms[roomId]){
+    // possible to join this room
+    const data = {
+      status: "success",
     }
-    else{
-      // not possible to join this meet
-      const data = {
-        status: "failure"
-      }
-      res.send(data);
+    res.send(data);
+  }
+  else{
+    // not possible to join this meet
+    const data = {
+      status: "failure"
     }
-  })
+    res.send(data);
+  }
+})
 
 app.post("/get_secret", (_, res) => {
   const response = {
@@ -314,6 +300,4 @@ app.post("/get_secret", (_, res) => {
   res.send(response);
 })
 
-server.listen(process.env.PORT || 8000, () => {
-    console.log(process.env.PROJECT_ID);
-});
+server.listen(process.env.PORT || 8000);
