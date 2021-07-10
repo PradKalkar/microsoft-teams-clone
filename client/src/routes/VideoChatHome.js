@@ -6,6 +6,7 @@ import { faVideo, faKeyboard } from "@fortawesome/free-solid-svg-icons";
 import { v1 as uuid } from "uuid";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { createChat, deleteChat } from '../components/Apis';
+import logoImg from "../assets/images/logo.png"
 import AlertDialog from "../components/AlertDialog";
 import axios from "axios";
 import "./VideoChatHome.scss";
@@ -229,7 +230,7 @@ const VideoChatHome = (props) => {
         <center style={{ marginTop: "120px" }}>
           <h2>Konnect Well</h2>
           <img
-            src="%PUBLIC_URL%/images/logo.png"
+            src={logoImg}
             alt="logo"
             width="200px"
             height="200px"

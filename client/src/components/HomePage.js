@@ -4,6 +4,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { useEffect, useState } from "react";
 import { createUser } from './Apis';
 import AlertDialog from '../components/AlertDialog';
+import logoImg from "../assets/images/logo.png"
 import "./HomePage.css";
 
 const HomePage = (props) => {
@@ -101,7 +102,7 @@ const HomePage = (props) => {
         <div id="logo">
           <h2>Konnect Well</h2>
           <img
-            src="%PUBLIC_URL%/images/logo.png"
+            src={logoImg}
             height="100vh"
             alt="Logo Meet"
           />
