@@ -5,14 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVideo, faKeyboard } from "@fortawesome/free-solid-svg-icons";
 import { v1 as uuid } from "uuid";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { createChat, deleteChat } from '../../Chat/Apis';
+import { createChat, deleteChat } from "../../Chat/Apis";
 import logoImg from "../../../assets/images/logo.png";
 import AlertDialog from "../../Common/AlertDialog";
 import axios from "axios";
 import "./VideoChatHome.scss";
 
 const VideoChatHome = (props) => {
-  const [popup, setPopup] = useState('');
+  const [popup, setPopup] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, loginWithRedirect, isLoading, logout, user } =
@@ -32,48 +32,45 @@ const VideoChatHome = (props) => {
     setLoading(true);
     const roomId = uuid();
     const chatId = await createChat(roomId, user.email, user.given_name);
-    if (!chatId){
+    if (!chatId) {
       setPopup("connection timed out");
       setLoading(false);
-    }
-    else{
+    } else {
       // chat created successfully
       try {
         const data = {
           room: roomId,
           chat: chatId,
-          admin: user.email
+          admin: user.email,
         };
         const config = {
           method: "post",
           url: "/new_meeting",
-          data: data
+          data: data,
         };
 
         const response = await axios(config);
-        if (response.data === "success"){
+        if (response.data === "success") {
           setLoading(false);
           props.history.push({
             pathname: `/videochat/room/${roomId}`,
             state: {
               authorised: true, // we are entering the videocall securely through app's interface
-              admin: true
-            }
+              admin: true,
+            },
           });
-        }
-        else{
+        } else {
           setPopup("meet creation failed");
           await deleteChat(user.email, chatId);
           setLoading(false);
         }
-      }
-      catch (error) {
+      } catch (error) {
         setPopup("connection timed out");
         await deleteChat(user.email, chatId);
         setLoading(false);
       }
     }
-  }
+  };
 
   const handleExistingMeetJoin = async () => {
     setLoading(true);
@@ -83,19 +80,18 @@ const VideoChatHome = (props) => {
     try {
       const data = {
         room: roomId,
-      }
+      };
       const config = {
         method: "post",
         url: "/existing_meeting",
-        data: data
-      }
+        data: data,
+      };
 
       const response = await axios(config);
-      if (response.data.status === "failure"){
+      if (response.data.status === "failure") {
         setLoading(false);
         setPopup("Meeting link invalid");
-      }
-      else{
+      } else {
         // join the user in
         setLink("");
         setLoading(false);
@@ -103,15 +99,15 @@ const VideoChatHome = (props) => {
           pathname: `/videochat/room/${roomId}`,
           state: {
             authorised: true,
-            admin: false
-          }
+            admin: false,
+          },
         });
       }
     } catch {
       setLoading(false);
       setPopup("connection timed out");
     }
-  }
+  };
 
   if (popup === "auth") {
     return (
@@ -123,10 +119,18 @@ const VideoChatHome = (props) => {
         auto={true}
         time={5000}
         btnTextRight="Ok"
-        onClose={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
-        onRight={() => loginWithRedirect({redirectUri: window.location.origin + "/videochat"})}
+        onClose={() =>
+          loginWithRedirect({
+            redirectUri: window.location.origin + "/videochat",
+          })
+        }
+        onRight={() =>
+          loginWithRedirect({
+            redirectUri: window.location.origin + "/videochat",
+          })
+        }
       />
-    )
+    );
   }
 
   if (popup === "connection timed out") {
@@ -138,10 +142,10 @@ const VideoChatHome = (props) => {
         showRight={true}
         auto={false}
         btnTextRight="Ok"
-        onClose={() => setPopup('')}
-        onRight={() => setPopup('')}
+        onClose={() => setPopup("")}
+        onRight={() => setPopup("")}
       />
-    )
+    );
   }
 
   if (popup === "meet creation failed") {
@@ -154,10 +158,10 @@ const VideoChatHome = (props) => {
         auto={true}
         time={5000}
         btnTextRight="Ok"
-        onClose={() => setPopup('')}
-        onRight={() => setPopup('')}
+        onClose={() => setPopup("")}
+        onRight={() => setPopup("")}
       />
-    )
+    );
   }
 
   if (popup === "Meeting link invalid") {
@@ -170,71 +174,71 @@ const VideoChatHome = (props) => {
         auto={true}
         time={5000}
         btnTextRight="Ok"
-        onClose={() => setPopup('')}
-        onRight={() => setPopup('')}
+        onClose={() => setPopup("")}
+        onRight={() => setPopup("")}
       />
-    )
+    );
   }
 
-  return (
-      (isLoading || loading || !isAuthenticated) ? (
-      <div className="top-level-div">
-        <center style={{ marginTop: "5px" }}>
-          <CircularProgress color="secondary" />
-        </center>
-      </div> ) :
-      (
-        <div className="top-level-div">
-      { isAuthenticated &&
-          <nav className="homepage-nav-1">
-            <h3
-              style={{
-                fontSize: "auto",
-                paddingTop: "10px",
-                paddingLeft: "10px",
-              }}
-            >
-              Hi, {"given_name" in user && user.given_name.length > 0 ? user.given_name : ("name" in user && user.name.length > 0 ? user.name : user.email)}!
-            </h3>
-            <button
-              className="btn"
-              onClick={() => logout()}
-              style={{
-                position: "absolute",
-                right: "10px",
-                width: "100px",
-                alignItems: "center",
-                marginTop: "2px",
-              }}
-            >
-              Log Out
-            </button>
-          </nav>
-          }
-          <nav className="homepage-nav-1">
-            <button
-              className="btn"
-              onClick={() => props.history.push("/")}
-              style={{
-                position: "absolute",
-                right: "10px",
-                width: "100px",
-                alignItems: "center",
-                marginTop: "15px",
-              }}
-            >
-              Home
-            </button>
+  return isLoading || loading || !isAuthenticated ? (
+    <div className="top-level-div">
+      <center style={{ marginTop: "5px" }}>
+        <CircularProgress color="secondary" />
+      </center>
+    </div>
+  ) : (
+    <div className="top-level-div">
+      {isAuthenticated && (
+        <nav className="homepage-nav-1">
+          <h3
+            style={{
+              fontSize: "auto",
+              paddingTop: "10px",
+              paddingLeft: "10px",
+            }}
+          >
+            Hi,{" "}
+            {"given_name" in user && user.given_name.length > 0
+              ? user.given_name
+              : "name" in user && user.name.length > 0
+              ? user.name
+              : user.email}
+            !
+          </h3>
+          <button
+            className="btn"
+            onClick={() => logout()}
+            style={{
+              position: "absolute",
+              right: "10px",
+              width: "100px",
+              alignItems: "center",
+              marginTop: "2px",
+            }}
+          >
+            Log Out
+          </button>
+        </nav>
+      )}
+      <nav className="homepage-nav-1">
+        <button
+          className="btn"
+          onClick={() => props.history.push("/")}
+          style={{
+            position: "absolute",
+            right: "10px",
+            width: "100px",
+            alignItems: "center",
+            marginTop: "15px",
+          }}
+        >
+          Home
+        </button>
       </nav>
       <div className="home-page">
         <center style={{ marginTop: "120px" }}>
           <h2>Konnect Well</h2>
-          <img
-            src={logoImg}
-            alt="logo"
-            width="200px"
-            height="200px"
-          />
+          <img src={logoImg} alt="logo" width="200px" height="200px" />
           <div className="body">
             <div className="left-side">
               <div className="content">
@@ -269,8 +273,7 @@ const VideoChatHome = (props) => {
         </center>
       </div>
     </div>
-      )
-  )
+  );
 };
 
 export default VideoChatHome;

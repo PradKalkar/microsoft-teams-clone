@@ -1,11 +1,9 @@
 import { useState } from "react";
 import "./Messenger.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTimes
-} from "@fortawesome/free-solid-svg-icons";
-import { formatDate } from "../../../utils/helpers"
-import DOMPurify from 'dompurify';
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { formatDate } from "../../../utils/helpers";
+import DOMPurify from "dompurify";
 import MyToolTip from "../MyToolTip";
 import { IconButton } from "@material-ui/core";
 
@@ -41,8 +39,7 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
         />
       </div>
 
-      <div className="messenger-header-tabs">
-      </div>
+      <div className="messenger-header-tabs"></div>
 
       <div className="chat-section">
         {messageList.map((item) => (
@@ -50,11 +47,12 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
             <div className="sender">
               {item.user} <small>{formatDate(item.time)}</small>
             </div>
-            <p className="msg"
+            <p
+              className="msg"
               dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(item.msg),
-              }}>
-            </p>
+                __html: DOMPurify.sanitize(item.msg),
+              }}
+            ></p>
           </div>
         ))}
       </div>
@@ -68,13 +66,24 @@ const Messenger = ({ setIsMessenger, sendMsg, messageList }) => {
         />
 
         <MyToolTip title={msg.length > 0 ? "Send Message" : ""}>
-            <IconButton
-              disabled={msg.length > 0 ? false : true}
-              onClick={handleSendMsg}
-              style={{cursor: msg.length > 0 ? "pointer" : "default", fontSize: "20px"}}
+          <IconButton
+            disabled={msg.length > 0 ? false : true}
+            onClick={handleSendMsg}
+            style={{
+              cursor: msg.length > 0 ? "pointer" : "default",
+              fontSize: "20px",
+            }}
+          >
+            <span
+              class="material-icons-sharp"
+              style={{
+                color: msg.length > 0 ? "#0e7878" : "grey",
+                fontSize: "32px",
+              }}
             >
-              <span class="material-icons-sharp" style={{color: msg.length > 0 ? "#0e7878" : "grey", fontSize: "32px"}}>send</span>
-            </IconButton>
+              send
+            </span>
+          </IconButton>
         </MyToolTip>
       </div>
     </div>

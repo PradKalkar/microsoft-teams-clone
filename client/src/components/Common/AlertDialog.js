@@ -6,7 +6,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import Slide from '@material-ui/core/Slide';
+import Slide from "@material-ui/core/Slide";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -16,7 +16,7 @@ export default function AlertDialog(props) {
   const [open, setOpen] = React.useState(true);
 
   useEffect(() => {
-    if (props.auto){
+    if (props.auto) {
       setTimeout(() => {
         handleClose();
       }, props.time);
@@ -24,30 +24,27 @@ export default function AlertDialog(props) {
   }, []);
 
   const handleClose = () => {
-    if (props.keepOpen){
+    if (props.keepOpen) {
       // dont close the dialog
-    }
-    else{
+    } else {
       setOpen(false);
     }
     props.onClose();
-  }
+  };
 
   const handleLeftButton = () => {
-    if (props.keepOpen){
+    if (props.keepOpen) {
       // dont close the dialog
-    }
-    else{
+    } else {
       setOpen(false);
     }
     props.onLeft();
-  }
+  };
 
   const handleRightButton = () => {
-    if (props.keepOpen){
+    if (props.keepOpen) {
       // dont close the dialog
-    }
-    else{
+    } else {
       setOpen(false);
     }
     props.onRight();
@@ -62,29 +59,28 @@ export default function AlertDialog(props) {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
-        {props.title}
-      </DialogTitle>
+      <DialogTitle id="alert-dialog-title">{props.title}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
           {props.message}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        {
-          props.showLeft && (
-            <Button onClick={handleLeftButton} color="primary">
-              {props.btnTextLeft}
-            </Button>
-          )
-        }
-        {
-          props.showRight && (
-            <Button onClick={handleRightButton} color="primary" autoFocus style={{display: props.showRight ? 'block': 'none'}}>
-              {props.btnTextRight}
-            </Button>
-          )
-        }
+        {props.showLeft && (
+          <Button onClick={handleLeftButton} color="primary">
+            {props.btnTextLeft}
+          </Button>
+        )}
+        {props.showRight && (
+          <Button
+            onClick={handleRightButton}
+            color="primary"
+            autoFocus
+            style={{ display: props.showRight ? "block" : "none" }}
+          >
+            {props.btnTextRight}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

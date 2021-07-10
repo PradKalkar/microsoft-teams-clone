@@ -11,9 +11,7 @@ const PartnerVideo = (props) => {
     });
   }, []);
 
-  return (
-    <video controls playsInline autoPlay ref={videoRef}/>
-  );
+  return <video controls playsInline autoPlay ref={videoRef} />;
 };
 
 export default PartnerVideo;

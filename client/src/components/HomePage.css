@@ -539,7 +539,8 @@ h2 {
 }
 
 #banner-01 {
-  background: url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-left.png) no-repeat left;
+  background: url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-left.png)
+    no-repeat left;
   height: 303px;
   width: 100%;
 }
@@ -550,7 +551,8 @@ h2 {
 }
 
 #banner-03 {
-  background: url("https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-right.png") no-repeat right;
+  background: url("https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-hero-right.png")
+    no-repeat right;
   height: 303px;
   width: 100%;
 }
@@ -700,7 +702,8 @@ h2 {
 
 #footer {
   background: linear-gradient(rgba(77, 150, 169, 0.9), rgba(77, 150, 169, 0.8)),
-    url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-footer.jpg) no-repeat;
+    url(https://msantosdev.com/portfolio/meet/assets/imgs/desk-image-footer.jpg)
+      no-repeat;
   background-size: cover;
   width: 100%;
   height: 308px;
@@ -836,7 +839,8 @@ h2 {
         rgba(77, 150, 169, 0.9),
         rgba(77, 150, 169, 0.8)
       ),
-      url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-footer.jpg) no-repeat;
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/tablet-image-footer.jpg)
+        no-repeat;
     background-size: cover;
     width: 100%;
     height: 100%;
@@ -957,7 +961,8 @@ h2 {
         rgba(77, 150, 169, 0.9),
         rgba(77, 150, 169, 0.8)
       ),
-      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg) no-repeat;
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg)
+        no-repeat;
     background-size: cover;
     width: 100%;
     height: 428px;
@@ -1091,7 +1096,8 @@ h2 {
         rgba(77, 150, 169, 0.9),
         rgba(77, 150, 169, 0.8)
       ),
-      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg) no-repeat;
+      url(https://msantosdev.com/portfolio/meet/assets/imgs/mobile-image-footer.jpg)
+        no-repeat;
     background-size: cover;
     width: 100%;
     height: 428px;

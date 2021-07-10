@@ -1,4 +1,4 @@
-.top-level-div{
+.top-level-div {
   .home-page {
     background-color: white;
     .body {
@@ -6,75 +6,75 @@
       display: flex;
       align-items: center;
       justify-content: space-around;
-        .content {
-          h2 {
-            font-size: 44px;
-            font-weight: 400;
-            margin: 0;
-          }
-          p {
-            font-size: 18px;
-            font-weight: 300;
-          }
-          .action-btn {
-            margin-top: 30px;
+      .content {
+        h2 {
+          font-size: 44px;
+          font-weight: 400;
+          margin: 0;
+        }
+        p {
+          font-size: 18px;
+          font-weight: 300;
+        }
+        .action-btn {
+          margin-top: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          .btn {
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            .btn {
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: auto;
-              padding: 15px;
-              border: none;
-              outline: none;
-              background-color: #855fb1;
-              border-radius: 20px;
-              color: whitesmoke;
-              text-decoration: none;
-              .icon-block {
-                padding-right: 10px;
-              }
-              &:hover {
-                background: #d9b8ff;
-              }
+            justify-content: center;
+            font-size: auto;
+            padding: 15px;
+            border: none;
+            outline: none;
+            background-color: #855fb1;
+            border-radius: 20px;
+            color: whitesmoke;
+            text-decoration: none;
+            .icon-block {
+              padding-right: 10px;
             }
-            .input-block {
-              margin-left: 5px;
-              display: flex;
-              flex: 1;
-              .input-section {
-                position: relative;
-                margin-right: 10px;
-                .icon-block {
-                  position: absolute;
-                  top: 50%;
-                  transform: translate(10px, -50%);
-                  color: #5f6368;
-                }
-                input {
-                  font-size: auto;
-                  height: 48px;
-                  border: 1px solid #ccc;
-                  border-radius: 5px;
-                  padding-left: 35px;
-                  width: 100%;
-                  box-sizing: border-box;
-                  outline: none;
-                  &:hover{
-                    border-color: blue;
-                    border-width: 3px;
-                  }
+            &:hover {
+              background: #d9b8ff;
+            }
+          }
+          .input-block {
+            margin-left: 5px;
+            display: flex;
+            flex: 1;
+            .input-section {
+              position: relative;
+              margin-right: 10px;
+              .icon-block {
+                position: absolute;
+                top: 50%;
+                transform: translate(10px, -50%);
+                color: #5f6368;
+              }
+              input {
+                font-size: auto;
+                height: 48px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                padding-left: 35px;
+                width: 100%;
+                box-sizing: border-box;
+                outline: none;
+                &:hover {
+                  border-color: blue;
+                  border-width: 3px;
                 }
               }
             }
           }
         }
+      }
     }
   }
-  .homepage-nav-1{
+  .homepage-nav-1 {
     display: flex;
     flex: 1;
     .btn {

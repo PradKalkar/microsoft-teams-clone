@@ -1,29 +1,28 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ChatEngine} from 'react-chat-engine';
+import { ChatEngine } from "react-chat-engine";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
-import AlertDialog from '../Common/AlertDialog';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useEffect, useState, useRef } from "react";
+import axios from "axios";
+import AlertDialog from "../Common/AlertDialog";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Chat = () => {
   const { isLoading, isAuthenticated, loginWithRedirect, user } = useAuth0();
-  const [popUp, setPopUp] = useState('');
+  const [popUp, setPopUp] = useState("");
   const [loading, setLoading] = useState(true);
   const chatRef = useRef();
 
   useEffect(async () => {
-    if (!isLoading){
-      if (!isAuthenticated){
+    if (!isLoading) {
+      if (!isAuthenticated) {
         setPopUp("auth");
-      }
-      else{
+      } else {
         try {
           const config = {
             method: "post",
             url: "/get_secret",
-          }
-     
+          };
+
           const response = await axios(config);
           chatRef.current = {};
           chatRef.current["projectID"] = response.data.project;
@@ -31,8 +30,7 @@ const Chat = () => {
           setTimeout(() => {
             setLoading(false);
           }, 1000);
-        } 
-        catch {
+        } catch {
           setLoading(false);
           setPopUp("connection timed out");
         }
@@ -40,7 +38,7 @@ const Chat = () => {
     }
   }, [isLoading]);
 
-  if (popUp === "auth"){
+  if (popUp === "auth") {
     return (
       <AlertDialog
         title="Unauthorised request!"
@@ -50,13 +48,17 @@ const Chat = () => {
         auto={true}
         time={5000}
         btnTextRight="Ok"
-        onClose={() => loginWithRedirect({redirectUri: window.location.origin + "/chat"})}
-        onRight={() => loginWithRedirect({redirectUri: window.location.origin + "/chat"})}
+        onClose={() =>
+          loginWithRedirect({ redirectUri: window.location.origin + "/chat" })
+        }
+        onRight={() =>
+          loginWithRedirect({ redirectUri: window.location.origin + "/chat" })
+        }
       />
-    )
+    );
   }
 
-  if (popUp === "connection timed out"){
+  if (popUp === "connection timed out") {
     return (
       <AlertDialog
         title="ERR Connection Timed Out!"
@@ -66,35 +68,31 @@ const Chat = () => {
         btnTextRight="OK"
         auto={false}
         onClose={() => {
-          setPopUp('');
+          setPopUp("");
           window.location.href = window.location.origin + "/chat";
         }}
         onRight={() => {
-          setPopUp('');
+          setPopUp("");
           window.location.href = window.location.origin + "/chat";
         }}
       />
-    )
+    );
   }
-  
-  return (
-    !loading && !isLoading ?  
-      (
-        <div>
-          <ChatEngine
-            height="100vh"
-            projectID={chatRef.current.projectID}
-            userName={user.email}
-            userSecret={chatRef.current.userSecret}
-          />
-        </div>
-      ) : 
-      (
-        <center style={{marginTop: "5px"}}>
-            <CircularProgress color="secondary" />
-        </center>
-      )
-    )
+
+  return !loading && !isLoading ? (
+    <div>
+      <ChatEngine
+        height="100vh"
+        projectID={chatRef.current.projectID}
+        userName={user.email}
+        userSecret={chatRef.current.userSecret}
+      />
+    </div>
+  ) : (
+    <center style={{ marginTop: "5px" }}>
+      <CircularProgress color="secondary" />
+    </center>
+  );
 };
 
 export default Chat;

@@ -1,10 +1,10 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
 import { Tooltip, Zoom } from "@material-ui/core";
 
 const useStyles = makeStyles(() => ({
   customSize: {
-    fontSize: '18px'
-  }
+    fontSize: "18px",
+  },
 }));
 
 const MyToolTip = (props) => {

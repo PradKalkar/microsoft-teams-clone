@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useAuth0 } from "@auth0/auth0-react";
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { useEffect, useState } from "react";
-import { createUser } from '../components/Chat/Apis';
-import AlertDialog from '../components/Common/AlertDialog';
+import { createUser } from "../components/Chat/Apis";
+import AlertDialog from "../components/Common/AlertDialog";
 import logoImg from "../assets/images/logo.png";
 import "./HomePage.css";
 
@@ -13,17 +13,21 @@ const HomePage = (props) => {
   const { isLoading, isAuthenticated, loginWithRedirect, logout, user } =
     useAuth0();
 
-  useEffect(async() => {
-    if (!isLoading && isAuthenticated){
+  useEffect(async () => {
+    if (!isLoading && isAuthenticated) {
       // create user in the chat when a user is authenticated on the home page
       setLoading(true);
-      let userId = await createUser(user.email, user.given_name, user.family_name);
-      if (!userId){
+      let userId = await createUser(
+        user.email,
+        user.given_name,
+        user.family_name
+      );
+      if (!userId) {
         setPopup(true);
       }
       setLoading(false);
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   const videoCallHandler = () => {
     if (isAuthenticated) {
@@ -38,11 +42,10 @@ const HomePage = (props) => {
   const chatHandler = () => {
     if (isAuthenticated) {
       props.history.push("/chat");
-    }
-    else{
+    } else {
       loginWithRedirect({
-        redirectUri: `${window.location.origin}/chat`
-      })
+        redirectUri: `${window.location.origin}/chat`,
+      });
     }
   };
 
@@ -58,54 +61,53 @@ const HomePage = (props) => {
         onClose={() => window.location.reload()}
         onRight={() => window.location.reload()}
       />
-    )
+    );
   }
 
-  return (
-      isLoading || loading ? (
-        <center style={{marginTop: "5px"}}>
-          <CircularProgress color="secondary" />
-        </center>
-      ) :
-      (
-        <>
-        {!isAuthenticated ? (
-          <nav id="homepage-nav">
-            <button className="btn-roxo" onClick={() => loginWithRedirect()}>
-              Log In
-              <span
-                className="material-icons-outlined"
-                style={{ color: "white", fontSize: "30px", margin: "5px" }}
-              >
-                login
-              </span>
-            </button>
-          </nav>
-        ) : (
-          <nav id="homepage-nav">
-            <button className="btn-roxo" onClick={() => logout()}>
-              Log Out
-              <span
-                className="material-icons-outlined"
-                style={{ color: "white", fontSize: "30px", margin: "5px" }}
-              >
-                logout
-              </span>
-            </button>
-            <h3 style={{ fontSize: "30px", float: "right", paddingTop: "10px" }}>
-              Hi, {"given_name" in user ? user.given_name : ("name" in user ? user.name : user.email)}!
-            </h3>
-          </nav>
-        )
-      }
+  return isLoading || loading ? (
+    <center style={{ marginTop: "5px" }}>
+      <CircularProgress color="secondary" />
+    </center>
+  ) : (
+    <>
+      {!isAuthenticated ? (
+        <nav id="homepage-nav">
+          <button className="btn-roxo" onClick={() => loginWithRedirect()}>
+            Log In
+            <span
+              className="material-icons-outlined"
+              style={{ color: "white", fontSize: "30px", margin: "5px" }}
+            >
+              login
+            </span>
+          </button>
+        </nav>
+      ) : (
+        <nav id="homepage-nav">
+          <button className="btn-roxo" onClick={() => logout()}>
+            Log Out
+            <span
+              className="material-icons-outlined"
+              style={{ color: "white", fontSize: "30px", margin: "5px" }}
+            >
+              logout
+            </span>
+          </button>
+          <h3 style={{ fontSize: "30px", float: "right", paddingTop: "10px" }}>
+            Hi,{" "}
+            {"given_name" in user
+              ? user.given_name
+              : "name" in user
+              ? user.name
+              : user.email}
+            !
+          </h3>
+        </nav>
+      )}
       <section id="topo">
         <div id="logo">
           <h2>Konnect Well</h2>
-          <img
-            src={logoImg}
-            height="100vh"
-            alt="Logo Meet"
-          />
+          <img src={logoImg} height="100vh" alt="Logo Meet" />
         </div>
         <div id="banner">
           <div id="banner-01"></div>
@@ -203,31 +205,29 @@ const HomePage = (props) => {
             </p>
           </div>
           <div className="col-3">
-            {
-            !isLoading ?
-            (
-            <button className="btn-roxo-f" onClick={() => loginWithRedirect()}>
-              <div>
-                {!isAuthenticated ? "Log In" : "Log Out"}
-                <span
-                  className="material-icons-outlined"
-                  style={{ color: "white", fontSize: "30px", margin: "5px" }}
-                >
-                  {!isAuthenticated ? "login" : "logout"}
-                </span>
-              </div>
-            </button>)
-            :
-            (
+            {!isLoading ? (
+              <button
+                className="btn-roxo-f"
+                onClick={() => loginWithRedirect()}
+              >
+                <div>
+                  {!isAuthenticated ? "Log In" : "Log Out"}
+                  <span
+                    className="material-icons-outlined"
+                    style={{ color: "white", fontSize: "30px", margin: "5px" }}
+                  >
+                    {!isAuthenticated ? "login" : "logout"}
+                  </span>
+                </div>
+              </button>
+            ) : (
               <CircularProgress color="secondary" />
-            )
-            }   
+            )}
           </div>
         </div>
       </section>
     </>
-    )
-  )
+  );
 };
 
 export default HomePage;

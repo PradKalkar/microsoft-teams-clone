@@ -6,14 +6,12 @@ const app = express();
 const server = http.createServer(app);
 const socket = require("socket.io");
 const io = socket(server);
-
-const axios = require('axios');
+const axios = require("axios");
 const bodyParser = require("body-parser");
-const { resolveSoa } = require("dns");
 app.use(bodyParser.json());
 
 // Have Node serve the files for our built React app
-app.use(express.static(path.resolve(__dirname, './client/build')));
+app.use(express.static(path.resolve(__dirname, "./client/build")));
 
 const rooms = {}; // rooms[i] - users in room i
 const socketToRoom = {}; // socketToRoom[s] - room in which s resides
@@ -24,101 +22,109 @@ const adminSocket = {}; // map from chatId to chatAdmins socket
 const allowedUsersInRoom = {}; // list of allowed users in a room
 const emails = {}; // email corr to socketRefs
 
+io.on("connection", (socket) => {
+  // check for the room
 
-io.on('connection', socket => {
-    // check for the room
-
-    // we map the email of the admin in this join room
-    socket.on("join room", payload => {
-        const roomID = payload.room;
-        const useralias = payload.userIdentity;
-        const email = payload.email; // uniquely distinguishes the user
-        if (rooms[roomID]) {
-          // this socket is not admin
-          rooms[roomID].push(socket.id);
-        } else {
-          // this socket is admin
-          rooms[roomID] = [socket.id];
-          adminSocket[roomID] = socket.id;
-          allowedUsersInRoom[roomID] = [email];
-          emails[socket.id] = email;
-        }
-        socketToRoom[socket.id] = roomID;
-        socketToAlias[socket.id] = useralias;
-        const usersInThisRoom = rooms[roomID].filter(id => id !== socket.id);
-
-        socket.emit("all other users", usersInThisRoom); // emiting all users except the one who is joining
-    });
-
-    // map the email of other users in permission event
-    socket.on("permission", payload => {
-      const userAlias = payload.user;
-      const roomId = payload.room;
-      const email = payload.email;
+  // we map the email of the admin in this join room
+  socket.on("join room", (payload) => {
+    const roomID = payload.room;
+    const useralias = payload.userIdentity;
+    const email = payload.email; // uniquely distinguishes the user
+    if (rooms[roomID]) {
+      // this socket is not admin
+      rooms[roomID].push(socket.id);
+    } else {
+      // this socket is admin
+      rooms[roomID] = [socket.id];
+      adminSocket[roomID] = socket.id;
+      allowedUsersInRoom[roomID] = [email];
       emails[socket.id] = email;
+    }
+    socketToRoom[socket.id] = roomID;
+    socketToAlias[socket.id] = useralias;
+    const usersInThisRoom = rooms[roomID].filter((id) => id !== socket.id);
 
-      const allowedUsers = allowedUsersInRoom[roomId];
-      if (allowedUsers.includes(email)){
-        // allow directly
-        socket.emit("no permit required");
-      }
-      else{
-        io.to(adminSocket[roomId]).emit("permit?", {id: socket.id, userAlias: userAlias });
-      }
+    socket.emit("all other users", usersInThisRoom); // emiting all users except the one who is joining
+  });
+
+  // map the email of other users in permission event
+  socket.on("permission", (payload) => {
+    const userAlias = payload.user;
+    const roomId = payload.room;
+    const email = payload.email;
+    emails[socket.id] = email;
+
+    const allowedUsers = allowedUsersInRoom[roomId];
+    if (allowedUsers.includes(email)) {
+      // allow directly
+      socket.emit("no permit required");
+    } else {
+      io.to(adminSocket[roomId]).emit("permit?", {
+        id: socket.id,
+        userAlias: userAlias,
+      });
+    }
+  });
+
+  socket.on("permit status", (payload) => {
+    if (payload.allowed) {
+      // allow the user to enter into the meeting
+      const roomID = socketToRoom[socket.id];
+      // add this user to the list of trusted users
+      allowedUsersInRoom[roomID].push(emails[payload.id]);
+      io.to(payload.id).emit("allowed", chats[roomID]);
+    } else {
+      io.to(payload.id).emit("denied");
+    }
+  });
+
+  socket.on("offer", (payload) => {
+    io.to(payload.userToSignal).emit("user joined", {
+      signal: payload.signal,
+      callerID: payload.callerID,
+      userIdentity: payload.userIdentity,
     });
+  });
 
-    socket.on("permit status", payload => {
-      if (payload.allowed){
-        // allow the user to enter into the meeting
-        const roomID = socketToRoom[socket.id];
-        // add this user to the list of trusted users
-        allowedUsersInRoom[roomID].push(emails[payload.id]);
-        io.to(payload.id).emit("allowed", chats[roomID]);
+  socket.on("answer", (payload) => {
+    io.to(payload.callerID).emit("answer", {
+      signal: payload.signal,
+      id: socket.id,
+      userIdentity: payload.userIdentity,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    if (!socketToRoom[socket.id]) return;
+    const roomID = socketToRoom[socket.id];
+    const useralias = socketToAlias[socket.id];
+    let room = rooms[roomID];
+    if (room) {
+      // remove this user(socket) from the room
+      room = room.filter((id) => id !== socket.id);
+      rooms[roomID] = room;
+      if (rooms[roomID].length === 0) {
+        delete rooms[roomID];
+        delete adminUsername[chats[roomID]];
+        delete adminSocket[roomID];
+        delete chats[roomID];
+        delete allowedUsersInRoom[roomID];
       }
-      else{
-        io.to(payload.id).emit("denied");
-      }
-    })
+    }
 
-    socket.on("offer", payload => {
-        io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, userIdentity: payload.userIdentity });
-    });
+    // remove this socket id from socketToRoom and socketToAlias collection
+    delete socketToRoom[socket.id];
+    delete socketToAlias[socket.id];
+    delete emails[socket.id];
 
-    socket.on("answer", payload => {
-        io.to(payload.callerID).emit("answer", { signal: payload.signal, id: socket.id, userIdentity: payload.userIdentity });
-    });
-
-    socket.on('disconnect', () => {
-        if (!socketToRoom[socket.id]) return;
-        const roomID = socketToRoom[socket.id];
-        const useralias = socketToAlias[socket.id];
-        let room = rooms[roomID];
-        if (room) {
-            // remove this user(socket) from the room
-            room = room.filter(id => id !== socket.id);
-            rooms[roomID] = room;
-            if (rooms[roomID].length === 0) {
-              delete rooms[roomID];
-              delete adminUsername[chats[roomID]];
-              delete adminSocket[roomID];
-              delete chats[roomID];
-              delete allowedUsersInRoom[roomID];
-            }
-        }
-
-        // remove this socket id from socketToRoom and socketToAlias collection
-        delete socketToRoom[socket.id]; 
-        delete socketToAlias[socket.id];
-        delete emails[socket.id];
-
-        // emit event to all other users 
-        socket.broadcast.emit("user left", {id: socket.id, alias: useralias});
-    });
+    // emit event to all other users
+    socket.broadcast.emit("user left", { id: socket.id, alias: useralias });
+  });
 });
 
 // All other GET requests not handled before will return our React app
-app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, './client/build', 'index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
 });
 
 // Chat Apis
@@ -141,7 +147,7 @@ app.post("/create_user", async (req, res) => {
     res.send(error);
   }
 });
-  
+
 app.post("/create_chat", async (req, res) => {
   try {
     let data = req.body;
@@ -172,7 +178,7 @@ app.post("/delete_chat", async (req, res) => {
         "Project-ID": process.env.PROJECT_ID,
         "User-Name": data.admin_username,
         "User-Secret": process.env.USER_SECRET,
-      }
+      },
     };
     const response = await axios(config); // send request using axios
     res.send(response.data);
@@ -193,7 +199,7 @@ app.post("/add_user", async (req, res) => {
         "User-Secret": process.env.USER_SECRET,
       },
       data: {
-        username: data.username
+        username: data.username,
       },
     };
     const response = await axios(config);
@@ -202,7 +208,7 @@ app.post("/add_user", async (req, res) => {
     res.send(error);
   }
 });
-  
+
 app.post("/get_chat_msgs", async (req, res) => {
   try {
     const data = req.body;
@@ -225,7 +231,7 @@ app.post("/get_chat_msgs", async (req, res) => {
     res.send(error);
   }
 });
-  
+
 app.post("/post_chat_msg", async (req, res) => {
   try {
     const data = req.body;
@@ -242,8 +248,8 @@ app.post("/post_chat_msg", async (req, res) => {
         "User-Secret": process.env.USER_SECRET,
       },
       data: {
-        text: data.text
-      }
+        text: data.text,
+      },
     };
     response = await axios(config);
     res.send(response.data);
@@ -258,17 +264,16 @@ app.post("/new_meeting", (req, res) => {
   const roomId = data.room;
   const chatId = data.chat;
 
-  if (rooms[roomId]){
+  if (rooms[roomId]) {
     // new meeting not possible to create with this roomId
     res.send("failure");
-  }
-  else{
+  } else {
     // new meeting success
     chats[roomId] = chatId;
     adminUsername[chatId] = data.admin;
     res.send("success");
   }
-})
+});
 
 // check existing meeting creation
 // if success, send a permission request to admin of the meeting
@@ -276,28 +281,27 @@ app.post("/existing_meeting", (req, res) => {
   const data = req.body;
   const roomId = data.room;
 
-  if (rooms[roomId]){
+  if (rooms[roomId]) {
     // possible to join this room
     const data = {
       status: "success",
-    }
+    };
     res.send(data);
-  }
-  else{
+  } else {
     // not possible to join this meet
     const data = {
-      status: "failure"
-    }
+      status: "failure",
+    };
     res.send(data);
   }
-})
+});
 
 app.post("/get_secret", (_, res) => {
   const response = {
     secret: process.env.USER_SECRET,
-    project: process.env.PROJECT_ID 
-  }
+    project: process.env.PROJECT_ID,
+  };
   res.send(response);
-})
+});
 
 server.listen(process.env.PORT || 8000);
