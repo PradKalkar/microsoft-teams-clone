@@ -322,7 +322,7 @@ const Room = (props) => {
             urls: "stun:stun.stunprotocol.org",
           },
           {
-            urls: "turn:100.25.34.119:3478?transport=tcp",
+            urls: "turn:34.145.184.179:3478?transport=tcp",
             username: "kurento",
             credential: "kurento",
           },
@@ -361,7 +361,7 @@ const Room = (props) => {
             urls: "stun:stun.stunprotocol.org",
           },
           {
-            urls: "turn:100.25.34.119:3478?transport=tcp",
+            urls: "turn:34.145.184.179:3478?transport=tcp",
             username: "kurento",
             credential: "kurento",
           },
