@@ -9,9 +9,13 @@ const io = socket(server);
 const axios = require("axios");
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
-
+const root = path.join(__dirname, 'client', 'build');
 // Have Node serve the files for our built React app
-app.use(express.static(path.resolve(__dirname, "./client/build")));
+app.use(express.static(root));
+// All other GET requests not handled before will return our React app
+app.get("*", (req, res) => {
+  res.sendFile('index.html', { root });
+});
 
 const rooms = {}; // rooms[i] - users in room i
 const socketToRoom = {}; // socketToRoom[s] - room in which s resides
@@ -120,11 +124,6 @@ io.on("connection", (socket) => {
     // emit event to all other users
     socket.broadcast.emit("user left", { id: socket.id, alias: useralias });
   });
-});
-
-// All other GET requests not handled before will return our React app
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "./client/build", "index.html"));
 });
 
 // Chat Apis
