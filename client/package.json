@@ -2,7 +2,6 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8000",
   "dependencies": {
     "@auth0/auth0-react": "^1.5.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
@@ -55,6 +54,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "homepage": "https://konnect-well-engage.el.r.appspot.com"
+  }
 }
