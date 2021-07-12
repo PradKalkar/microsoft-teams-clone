@@ -16,8 +16,8 @@
 # For more information on GitHub Actions for Azure, refer to https://github.com/Azure/Actions
 # For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
 on:
-  release:
-    types: [created]
+  push:
+    branches: [master]
 
 env:
   AZURE_WEBAPP_NAME: pradnesh-msteams-clone    # set this to your application's name
