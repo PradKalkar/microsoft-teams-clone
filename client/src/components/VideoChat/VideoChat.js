@@ -182,6 +182,7 @@ const Room = (props) => {
         })
         .catch(() => {
           setLoading(false);
+          errorAudio.play();
           setPopUp("connection timed out");
         });
     }, 2000);
@@ -239,7 +240,8 @@ const Room = (props) => {
                   joinPersonIn();
                 })
                 .catch(() => {
-                  setLoading(false);
+									setLoading(false);
+									errorAudio.play();
                   setPopUp("connection timed out");
                 });
             });
@@ -272,7 +274,8 @@ const Room = (props) => {
                     })
                     .catch(() => {
                       // error in fetching chat messages
-                      setLoading(false);
+											setLoading(false);
+											errorAudio.play();
                       setPopUp("connection timed out");
                     });
                 })
@@ -280,7 +283,8 @@ const Room = (props) => {
                   // error in adding user to chat
 
                   setLoading(false);
-                  // redirect the user to videochat home page
+									// redirect the user to videochat home page
+									errorAudio.play();
                   setPopUp("connection timed out");
                 });
             });
@@ -318,7 +322,8 @@ const Room = (props) => {
               })
               .catch(() => {
                 // error in fetching chat messages
-                setLoading(false);
+								setLoading(false);
+								errorAudio.play();
                 setPopUp("connection timed out");
               });
           }
@@ -530,6 +535,7 @@ const Room = (props) => {
         }
       })
       .catch(() => {
+				errorAudio.play();
         setPopUp("connection timed out");
       });
   };

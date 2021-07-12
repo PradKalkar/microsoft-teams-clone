@@ -12,6 +12,7 @@ import axios from "axios";
 import "./VideoChatHome.scss";
 
 const VideoChatHome = (props) => {
+  const errorAudio = new Audio("/sounds/error.mp3");
   const [popup, setPopup] = useState("");
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ const VideoChatHome = (props) => {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      setPopup("auth");
+			setPopup("auth");
     }
   }, [isLoading]);
 
@@ -33,6 +34,8 @@ const VideoChatHome = (props) => {
     const roomId = uuid();
     const chatId = await createChat(roomId, user.email, user.given_name);
     if (!chatId) {
+      setLink("");
+      errorAudio.play();
       setPopup("connection timed out");
       setLoading(false);
     } else {
@@ -60,11 +63,15 @@ const VideoChatHome = (props) => {
             },
           });
         } else {
+          setLink("");
+          errorAudio.play();
           setPopup("meet creation failed");
           await deleteChat(user.email, chatId);
           setLoading(false);
         }
       } catch (error) {
+				setLink("");
+        errorAudio.play();  
         setPopup("connection timed out");
         await deleteChat(user.email, chatId);
         setLoading(false);
@@ -89,7 +96,9 @@ const VideoChatHome = (props) => {
 
       const response = await axios(config);
       if (response.data.status === "failure") {
+				setLink("");
         setLoading(false);
+        errorAudio.play();
         setPopup("Meeting link invalid");
       } else {
         // join the user in
@@ -104,7 +113,9 @@ const VideoChatHome = (props) => {
         });
       }
     } catch {
+			setLink("");
       setLoading(false);
+      errorAudio.play();
       setPopup("connection timed out");
     }
   };
