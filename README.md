@@ -1,6 +1,6 @@
 <!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/PradKalkar/microsoft-teams-clone">
     <img src="client/src/assets/images/logo.png" alt="Logo" width="130" height="130">
   </a>
 
@@ -14,7 +14,7 @@
     <strong>Group Video Calls, Chat all in one place giving you a seamless communication experience!</strong>
     <br />
     <br />
-    <strong><a href="https://github.com/othneildrew/Best-README-Template">View Demo</a></strong>
+    <strong><a href="https://youtu.be/KBFL9wW17zo">View Demo</a></strong>
     <strong>.</strong>
     <strong><a href="https://konnect-well-engage.azurewebsites.net">Visit App</a></strong>
   </p>
@@ -97,7 +97,7 @@ The web app is deployed using the Microsoft Azure App Service - used CI/CD
 
 <!-- LIVE DEMO -->
 ## Live Demo
-**[YouTube](https://github.com/PradKalkar/microsoft-teams-clone)**
+**[YouTube](https://youtu.be/KBFL9wW17zo)**
 
 <!-- CONTACT -->
 ## Contact
