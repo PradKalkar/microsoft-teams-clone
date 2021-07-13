@@ -5,7 +5,7 @@
   </a>
 
   <h1 align="center">
-    <a href="https://konnect-well-engage.el.r.appspot.com">
+    <a href="https://konnect-well-engage.azurewebsites.net">
        Konnect Well
     </a>
   </h1>
@@ -16,7 +16,7 @@
     <br />
     <strong><a href="https://github.com/othneildrew/Best-README-Template">View Demo</a></strong>
     <strong>.</strong>
-    <strong><a href="https://konnect-well-engage.el.r.appspot.com">Visit App</a></strong>
+    <strong><a href="https://konnect-well-engage.azurewebsites.net">Visit App</a></strong>
   </p>
 </p>
 
@@ -39,9 +39,6 @@
       <strong><a href="#live-demo">Live Demo</a></strong>
     </li>
     <li>
-      <strong><a href="#usage">Usage</a></strong>
-    </li>
-    <li>
       <strong><a href="#contact">Contact</a></strong>
     </li>
   </ol>
@@ -62,13 +59,13 @@
     A user must authenticate through any of the given identity providers (Microsoft, Google, Github, LinkedIn, Amazon) inorder to use the application.
   </li>
   <li>
-    Users can connect to each other through video calls which offer a wide range of capabilities like microphone mute/unmute, video mute/unmute, screen sharing, leave call, copy meeting code and also inmeeting chat.
+    Users can connect to each other through video calls which offer a wide range of capabilities like microphone mute/unmute, video mute/unmute, screen sharing, leave call, copy meeting code, ability to see the number of meeting participants and also inmeeting chat. Once a user starts a new meeting, he/she can either share the meeting link or copy the meeting code from the navigation bar to share the meeting with others. 
   </li>
   <li>
     The in-meeting chat is even persisted after the user leaves the meeting. So, if the user bychance forgets to note some things down when the meeting ends, he/she can also visit the chat section to see the respective meeting's chat.
   </li>
   <li>
-    Meetings are safe, before joining an existing meeting, the user requires to take the permission of the meeting admin to enter into the meeting. The meeting admin gets a notification and accordingly can admit or deny entry.
+    Meetings are safe, before joining an existing meeting, the user requires to take the permission of the meeting admin to enter into the meeting. The meeting admin gets a notification and accordingly can admit or deny entry. 
   </li>
   <li>
     Users also have the option to chat with any other user separately or make groups, and moreover the chat is not just a text chat but the user can send any kind of information such as bold/italic/underline text, code part, embed a link, or send attachments. 
@@ -87,7 +84,9 @@
 
 <!-- Deployment -->
 ## Deployment
-[Konnect Well](https://konnect-well-engage.el.r.appspot.com)
+The web app is deployed using the Microsoft Azure App Service - used CI/CD
+<br>
+[Konnect Well](https://konnect-well-engage.azurewebsites.net)
 
 ## Built With
 * [WebRTC](https://webrtc.org)
@@ -99,13 +98,6 @@
 <!-- LIVE DEMO -->
 ## Live Demo
 **[YouTube](https://github.com/PradKalkar/microsoft-teams-clone)**
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-For more examples, please refer to the [Documentation](https://example.com)
 
 <!-- CONTACT -->
 ## Contact
