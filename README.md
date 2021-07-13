@@ -14,8 +14,6 @@
     <strong>Group Video Calls, Chat all in one place giving you a seamless communication experience!</strong>
     <br />
     <br />
-    <strong><a href="https://youtu.be/KBFL9wW17zo">View Demo</a></strong>
-    <strong>.</strong>
     <strong><a href="https://konnect-well-engage.azurewebsites.net">Visit App</a></strong>
   </p>
 </p>
@@ -34,9 +32,6 @@
     </li>
     <li>
       <strong><a href="#built-with">Built With</a></strong>
-    </li>
-    <li>
-      <strong><a href="#live-demo">Live Demo</a></strong>
     </li>
     <li>
       <strong><a href="#contact">Contact</a></strong>
@@ -94,10 +89,6 @@ The web app is deployed using the Microsoft Azure App Service - used CI/CD
 * [React](https://reactjs.org)
 * [Node.js](https://nodejs.org)
 * [Express](https://expressjs.com)
-
-<!-- LIVE DEMO -->
-## Live Demo
-**[YouTube](https://youtu.be/KBFL9wW17zo)**
 
 <!-- CONTACT -->
 ## Contact
