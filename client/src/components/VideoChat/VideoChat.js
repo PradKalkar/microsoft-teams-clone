@@ -21,6 +21,7 @@ import MessageListReducer from "../../reducers/MessageListReducer";
 const initialState = [];
 
 const Room = (props) => {
+	const silenceAudio = new Audio("/sounds/silence.mp3");
 	const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
 	const joinInAudio = new Audio("/sounds/joinsound.mp3");
 	const permitAudio = new Audio("/sounds/permission.mp3");
@@ -189,6 +190,7 @@ const Room = (props) => {
 	};
 
 	useEffect(() => {
+		silenceAudio.autoplay = true;
 		setTimeout(() => {
 			if (!isLoading) {
 				if (!isAuthenticated) {
@@ -756,7 +758,7 @@ const Room = (props) => {
 						left: `${
 							width < 700
 								? width < 500
-									? 20
+									? 14
 									: (width * 20) / 100
 								: (width * 38) / 100
 							}px`,

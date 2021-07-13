@@ -12,6 +12,7 @@ import axios from "axios";
 import "./VideoChatHome.scss";
 
 const VideoChatHome = (props) => {
+	const silenceAudio = new Audio("/sounds/silence.mp3");
 	const errorAudio = new Audio("/sounds/error.mp3");
 	const [popup, setPopup] = useState("");
 	const [link, setLink] = useState("");
@@ -20,6 +21,7 @@ const VideoChatHome = (props) => {
 		useAuth0();
 
 	useEffect(() => {
+		silenceAudio.autoplay = true;
 		setTimeout(() => {
 			if (localStorage.getItem("room")) {
 				setLoading(true);
