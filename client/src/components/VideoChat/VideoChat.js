@@ -21,7 +21,6 @@ import MessageListReducer from "../../reducers/MessageListReducer";
 const initialState = [];
 
 const Room = (props) => {
-	const silenceAudio = new Audio("/sounds/silence.mp3");
 	const hangUpAudio = new Audio("/sounds/hangupsound.mp3");
 	const joinInAudio = new Audio("/sounds/joinsound.mp3");
 	const permitAudio = new Audio("/sounds/permission.mp3");
@@ -190,7 +189,6 @@ const Room = (props) => {
 	};
 
 	useEffect(() => {
-		silenceAudio.autoplay = true;
 		setTimeout(() => {
 			if (!isLoading) {
 				if (!isAuthenticated) {
@@ -233,8 +231,8 @@ const Room = (props) => {
 												"first_name" in message.sender &&
 													message.sender.first_name.length > 0
 													? `${message.sender.first_name} ${message.sender.last_name}`
-													: message.sender.email;
-											if (message.sender.email === user.email) {
+													: message.sender_username;
+											if (message.sender_username === user.email) {
 												userIdentity = "You";
 											}
 											const payload = {
@@ -270,8 +268,8 @@ const Room = (props) => {
 														"first_name" in message.sender &&
 															message.sender.first_name.length > 0
 															? `${message.sender.first_name} ${message.sender.last_name}`
-															: message.sender.email;
-													if (message.sender.email === user.email) {
+															: message.sender_username;
+													if (message.sender_username === user.email) {
 														userIdentity = "You";
 													}
 													const payload = {
@@ -322,8 +320,8 @@ const Room = (props) => {
 											"first_name" in message.sender &&
 												message.sender.first_name.length > 0
 												? `${message.sender.first_name} ${message.sender.last_name}`
-												: message.sender.email;
-										if (message.sender.email === user.email) {
+												: message.sender_username;
+										if (message.sender_username === user.email) {
 											userIdentity = "You";
 										}
 										const payload = {
@@ -758,7 +756,7 @@ const Room = (props) => {
 						left: `${
 							width < 700
 								? width < 500
-									? 30
+									? 20
 									: (width * 20) / 100
 								: (width * 38) / 100
 							}px`,
