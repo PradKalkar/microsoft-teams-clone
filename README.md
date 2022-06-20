@@ -84,6 +84,8 @@ The web app is deployed using the Microsoft Azure App Service - used CI/CD
 <br>
 [Konnect Well](https://konnect-well-engage.azurewebsites.net)
 
+PS: The deployment link maynot work in the future. It was deployed using the free subscription available which is expired now.
+
 ## Built With
 * [WebRTC](https://webrtc.org)
 * [Socket.io](https://socket.io)
